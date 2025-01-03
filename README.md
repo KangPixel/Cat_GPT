@@ -18,7 +18,7 @@ OPENAI_API_KEY=
 
 실행법
 
-1.사용하고 있는 가상환경(가상환경 아니면 그냥) 터미널 열어서 python server.py
+1.터미널 열어서 사용하고 있는 가상환경 키고 (가상환경 아니면 그냥) python server.py
 
 2. ngrok 켜서 ngrok http 8000
 
