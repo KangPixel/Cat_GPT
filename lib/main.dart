@@ -1,3 +1,4 @@
+// main.dart
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'cat_game.dart';
@@ -9,7 +10,6 @@ void main() async {
   await catStatus.loadStatus(); // 로컬 저장된 상태 로드
   runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -23,19 +23,6 @@ class MyApp extends StatelessWidget {
         '/': (context) => const GameScreen(),
         '/chat': (context) => const ResultPage(),
       },
-    );
-  }
-}
-
-class GameScreen extends StatelessWidget {
-  const GameScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: GameWidget(
-        game: CatGame(onTalk: () => Navigator.pushNamed(context, '/chat')),
-      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+// chat.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -17,9 +18,10 @@ class _ResultPageState extends State<ResultPage> {
   List<Map<String, String>> messages = [];
   bool isLoading = false;
 
-void sendMessage() async {
-  String prompt = _controller.text.trim();
-  if (prompt.isNotEmpty) {
+  Future<void> sendMessage() async {
+    final prompt = _controller.text.trim();
+    if (prompt.isEmpty) return;
+
     setState(() {
       messages.add({'role': 'user', 'content': prompt});
       _controller.clear();
@@ -34,9 +36,7 @@ void sendMessage() async {
           'message': prompt,
           'status': {
             'hunger': catStatus.hunger.value,
-            'fatigue': catStatus.fatigue.value,
-            'happiness': catStatus.happiness.value,
-            'weight': catStatus.weight.value,
+            'intimacy': catStatus.intimacy.value,
           },
         }),
       );
@@ -46,42 +46,36 @@ void sendMessage() async {
         final botResponse = jsonResponse['response'];
         final statusChanges = jsonResponse['status_changes'];
 
-        // 상태 변화량(Delta) 적용
         if (statusChanges != null) {
           catStatus.updateStatus(
             hungerDelta: statusChanges['hunger'] ?? 0,
-            fatigueDelta: statusChanges['fatigue'] ?? 0,
-            happinessDelta: statusChanges['happiness'] ?? 0,
-            weightDelta: statusChanges['weight'] ?? 0,
+            intimacyDelta: statusChanges['intimacy'] ?? 0,
           );
         }
 
         setState(() {
           messages.add({'role': 'assistant', 'content': botResponse});
-          isLoading = false;
         });
       } else {
         setState(() {
           messages.add({'role': 'assistant', 'content': 'Error: Unable to process.'});
-          isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
         messages.add({'role': 'assistant', 'content': 'Error: $e'});
+      });
+    } finally {
+      setState(() {
         isLoading = false;
       });
     }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Chatbot"),
-      ),
+      appBar: AppBar(title: const Text("Chatbot")),
       body: Column(
         children: [
           Expanded(
@@ -97,8 +91,7 @@ void sendMessage() async {
                 final message = messages[index];
                 final isUser = message['role'] == 'user';
                 return Container(
-                  alignment:
-                      isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
                   padding: const EdgeInsets.all(8.0),
                   child: Container(
                     decoration: BoxDecoration(
@@ -122,8 +115,8 @@ void sendMessage() async {
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      decoration: const InputDecoration.collapsed(
-                          hintText: "메시지를 입력하세요"),
+                      decoration:
+                          const InputDecoration.collapsed(hintText: "메시지를 입력하세요"),
                     ),
                   ),
                   IconButton(
