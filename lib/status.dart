@@ -5,6 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class CatStatus {
   ValueNotifier<int> hunger = ValueNotifier(100);
   ValueNotifier<int> intimacy = ValueNotifier(0);
+  // ValueNotifier<int> speed = ValueNotifier(0);
+  // ValueNotifier<int> stamina = ValueNotifier(0);
+  // ValueNotifier<int> burst = ValueNotifier(0);
 
   Future<void> loadStatus() async {
     final prefs = await SharedPreferences.getInstance();
