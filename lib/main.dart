@@ -1,6 +1,5 @@
 // main.dart
 import 'package:flutter/material.dart';
-import 'package:flame/game.dart';
 import 'cat_game.dart';
 import 'chat.dart';
 import 'status.dart';

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'status.dart';
 
 class CatGame extends FlameGame {
@@ -23,7 +24,7 @@ class CatGame extends FlameGame {
 
     // 고양이 스프라이트 추가
     cat = SpriteComponent()
-      ..sprite = await loadSprite('cat.png')
+      ..sprite = await loadSprite('grayCat.png')
       ..size = Vector2(size.x * 0.4, size.y * 0.4)
       ..position = Vector2(size.x / 2 - size.x * 0.2, size.y / 2 - size.y * 0.1);
     add(cat);
@@ -48,13 +49,13 @@ class CatGame extends FlameGame {
   Future<void> _changeCatSpriteTemporarily() async {
     // 스프라이트 변경
     final originalSprite = cat.sprite;
-    cat.sprite = await loadSprite('cat_open_mouth.png');
+    cat.sprite = await loadSprite('grayCat_open_mouth.png');
     await Future.delayed(const Duration(milliseconds: 500)); // 0.5초 대기
     cat.sprite = originalSprite; // 원래 스프라이트로 복구
   }
 }
 
-class TappableAreaComponent extends PositionComponent {
+class TappableAreaComponent extends PositionComponent with TapCallbacks {
   final SpriteComponent target;
   final VoidCallback onTap;
 
@@ -64,12 +65,8 @@ class TappableAreaComponent extends PositionComponent {
   }
 
   @override
-  bool containsPoint(Vector2 point) {
-    return target.toRect().contains(point.toOffset());
-  }
-
-  @override
-  void onTapDown() {
+  void onTapDown(TapDownEvent event) {
+    print('TappableAreaComponent tapped'); // 디버깅용 출력
     onTap();
   }
 }
