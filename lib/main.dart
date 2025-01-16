@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
-        '/': (context) => const GameScreen(),
+        '/': (context) => GameScreen(),
         '/chat': (context) => const ResultPage(),
       },
     );

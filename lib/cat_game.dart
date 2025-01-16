@@ -1,3 +1,4 @@
+// cat_game.dart
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';
@@ -8,9 +9,11 @@ class CatGame extends FlameGame {
   late SpriteComponent background;
   late SpriteComponent cat;
   late TextComponent countdown;
+  int touchCount = 0;
   int remainingDays = 10;
 
   final VoidCallback onTalk;
+  final ValueNotifier<int> barValue = ValueNotifier<int>(100); // 막대 그래프 초기 값
 
   CatGame({required this.onTalk});
 
@@ -32,8 +35,8 @@ class CatGame extends FlameGame {
     // 카운트다운 텍스트 추가
     countdown = TextComponent(
       text: 'D-day: $remainingDays',
-      position: Vector2(size.x - 10, 20),
-      anchor: Anchor.topRight,
+      position: Vector2(size.x * 0.8, size.y / 5.5),
+      anchor: Anchor.topCenter,
     );
     add(countdown);
 
@@ -42,8 +45,12 @@ class CatGame extends FlameGame {
   }
 
   void _onCatTap() {
+    touchCount += 1;
     catStatus.updateStatus(intimacyDelta: 5); // 친밀도 증가
     _changeCatSpriteTemporarily(); // 스프라이트 변경
+
+    // 막대 그래프 값 변경
+    barValue.value = (barValue.value - 10) % 101;
   }
 
   Future<void> _changeCatSpriteTemporarily() async {
@@ -72,99 +79,135 @@ class TappableAreaComponent extends PositionComponent with TapCallbacks {
 }
 
 class GameScreen extends StatelessWidget {
-  const GameScreen({Key? key}) : super(key: key);
-
-  void _showInfoDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Status Info'),
-          content: ValueListenableBuilder(
-            valueListenable: catStatus.hunger,
-            builder: (context, hunger, _) {
-              return ValueListenableBuilder(
-                valueListenable: catStatus.intimacy,
-                builder: (context, intimacy, _) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Hunger: $hunger'),
-                      Text('Intimacy: $intimacy'),
-                    ],
-                  );
-                },
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  final CatGame game; // CatGame 인스턴스 생성
+  GameScreen({Key? key})
+      : game = CatGame(onTalk: () => print("Talk button pressed")),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: const Text('Cat Game'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.info),
-            onPressed: () => _showInfoDialog(context),
+      body: Stack(
+        children: [
+          GameWidget(
+            game: game,
+          ),
+          Positioned(
+            top: 50,
+            left: 20,
+            right: 20,
+            child: _buildHorizontalBar(), // 막대 그래프 위젯
+          ),
+          Positioned(
+            bottom: 20,
+            left: 20,
+            child: _buildButtonWithBackground(
+              context,
+              label: 'Play',
+              backgroundImage: 'assets/images/grayCat.png',
+              onTap: () {
+                print("Play button pressed");
+                catStatus.updateStatus(hungerDelta: -10);
+              },
+            ),
+          ),
+          Positioned(
+            bottom: 20,
+            right: 20,
+            child: _buildButtonWithBackground(
+              context,
+              label: 'Talk',
+              backgroundImage: 'assets/images/grayCat_open_mouth.png',
+              onTap: () {
+                print("Talk button pressed");
+                catStatus.updateStatus(intimacyDelta: 5);
+              },
+            ),
           ),
         ],
-      ),
-      body: GameWidget(
-        game: CatGame(onTalk: () => Navigator.pushNamed(context, '/chat')),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildButton(context, 'Feed', Icons.food_bank, () {
-              catStatus.updateStatus(hungerDelta: -10);
-            }),
-            _buildButton(context, 'Play', Icons.sports_soccer, () {
-              catStatus.updateStatus(intimacyDelta: 5);
-            }),
-            _buildButton(context, 'Talk', Icons.chat, () {
-              Navigator.pushNamed(context, '/chat');
-            }),
-            _buildButton(context, 'Rest', Icons.bedtime, () {
-              catStatus.updateStatus();
-            }),
-          ],
-        ),
       ),
     );
   }
 
-  Widget _buildButton(
-    BuildContext context,
-    String label,
-    IconData icon,
-    VoidCallback onTap,
-  ) {
-    return IconButton(
-      onPressed: onTap,
-      icon: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 12),
+  Widget _buildHorizontalBar() {
+    return ValueListenableBuilder<int>(
+      valueListenable: game.barValue, // CatGame의 barValue 사용
+      builder: (context, value, _) {
+        // 색상 결정
+        Color barColor;
+        if (value <= 30) {
+          barColor = Colors.red;
+        } else if (value <= 70) {
+          barColor = Colors.yellow;
+        } else {
+          barColor = Colors.green;
+        }
+
+        return Container(
+          width: double.infinity,
+          height: 30,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black, width: 2),
+            borderRadius: BorderRadius.circular(8),
           ),
-        ],
+          child: Stack(
+            children: [
+              FractionallySizedBox(
+                widthFactor: value / 100,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: barColor,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
+              Center(
+                child: Text(
+                  '$value%',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildButtonWithBackground(
+    BuildContext context, {
+    required String label,
+    required String backgroundImage,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      height: 60,
+      width: 140,
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(backgroundImage), // 버튼 배경 이미지
+          fit: BoxFit.cover,
+        ),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent, // 배경 투명 처리
+          shadowColor: Colors.transparent, // 그림자 제거
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }

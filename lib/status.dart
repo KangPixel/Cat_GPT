@@ -13,21 +13,34 @@ class CatStatus {
     final prefs = await SharedPreferences.getInstance();
     hunger.value = prefs.getInt('hunger') ?? 100;
     intimacy.value = prefs.getInt('intimacy') ?? 0;
+    // speed.value = prefs.getInt('speed') ?? 0;
+    // stamina.value = prefs.getInt('stamina') ?? 0;
+    // burst.value = prefs.getInt('burst') ?? 0;
   }
 
   Future<void> saveStatus() async {
     final prefs = await SharedPreferences.getInstance();
     prefs
       ..setInt('hunger', hunger.value)
-      ..setInt('intimacy', intimacy.value);
+      ..setInt('intimacy', intimacy.value)
+      // ..setInt('speed', speed.value)
+      // ..setInt('stamina', stamina.value)
+      // ..setInt('burst', burst.value)
+      ;
   }
 
   void updateStatus({
     int hungerDelta = 0,
     int intimacyDelta = 0,
+    int speedDelta = 0,
+    int staminaDelta = 0,
+    int burstDelta = 0,
   }) {
     hunger.value = (hunger.value + hungerDelta).clamp(0, 100);
     intimacy.value = (intimacy.value + intimacyDelta).clamp(0, 100);
+    // speed.value = (speed.value + speedDelta).clamp(0, 100);
+    // stamina.value = (stamina.value + staminaDelta).clamp(0, 100);
+    // burst.value = (burst.value + burstDelta).clamp(0, 100);
     saveStatus();
   }
 }
