@@ -93,35 +93,84 @@ class GameScreen extends StatelessWidget {
           GameWidget(
             game: game,
           ),
-          Positioned(
+          Positioned( // 에너지 바
             top: 50,
             left: 20,
             right: 20,
             child: _buildHorizontalBar(), // 막대 그래프 위젯
           ),
-          Positioned(
-            bottom: 20,
+          Positioned( // 정보 창
+            top: 120,
             left: 20,
+            child: _buildButtonWithBackground(
+              context,
+              label: 'Cat',
+              backgroundImage: 'assets/images/grayCat.png',
+              onTap: () {
+                print("Cat button pressed");
+                // 팝업 창으로 고양이의 정보( 이름, 품종, 생성 날짜)를 보여주고 닫기 버튼으로 팝업창을 닫을 수 있음
+              },
+            ),
+          ),
+          Positioned( // 밥 먹기
+            top: 210,
+            left: 20,
+            child: _buildButtonWithBackground(
+              context,
+              label: 'Eat',
+              backgroundImage: 'assets/images/grayCat.png',
+              onTap: () {
+                print("Eat button pressed");
+                catStatus.updateStatus(hungerDelta: -10);
+                // 고양이 옆에 다른 이미지를 1초 띄웠다가 사라짐
+                // 일정량 이상 못 주게 횟수 제한 또는 스탯의 디버프가 생기게함
+              },
+            ),
+          ),
+          Positioned( // 잠자기
+            top: 300,
+            left: 20,
+            child: _buildButtonWithBackground(
+              context,
+              label: 'Nap',
+              backgroundImage: 'assets/images/grayCat.png',
+              onTap: () {
+                print("Nap button pressed");
+                // 배경 이미지를 'assets/images/dream.png'으로 페이드 인 하며 서서히 교체
+                // touchCount를 0으로 초기화
+                // touchCount = 0;
+                // D-day를 1일 감소
+                // remainingDays -= 1;
+                // 친밀도 초기화
+                // catStatus.updateStatus(hungerDelta: - hunger.value);
+                // 에너지 초기화
+                // barValue.value = 100;
+              },
+            ),
+          ),
+          Positioned( // 미니게임
+            bottom: 20,
+            left: 30,
             child: _buildButtonWithBackground(
               context,
               label: 'Play',
               backgroundImage: 'assets/images/grayCat.png',
               onTap: () {
                 print("Play button pressed");
-                catStatus.updateStatus(hungerDelta: -10);
+                // Navigator.pushNamed(context, '/miniGame');
               },
             ),
           ),
-          Positioned(
+          Positioned( // 대화하기
             bottom: 20,
-            right: 20,
+            right: 30,
             child: _buildButtonWithBackground(
               context,
               label: 'Talk',
               backgroundImage: 'assets/images/grayCat_open_mouth.png',
               onTap: () {
                 print("Talk button pressed");
-                catStatus.updateStatus(intimacyDelta: 5);
+                Navigator.pushNamed(context, '/chat');
               },
             ),
           ),
@@ -185,8 +234,8 @@ class GameScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Container(
-      height: 60,
-      width: 140,
+      height: 80,
+      width: 80,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage(backgroundImage), // 버튼 배경 이미지

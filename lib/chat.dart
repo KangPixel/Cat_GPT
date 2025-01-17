@@ -1,10 +1,9 @@
-// chat.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'status.dart';
 
-const backendUrl = 'https://85e3-121-129-161-110.ngrok-free.app/chat';
+const backendUrl = 'http://34.22.100.160:8000/chat';
 
 class ResultPage extends StatefulWidget {
   const ResultPage({Key? key}) : super(key: key);
@@ -15,6 +14,7 @@ class ResultPage extends StatefulWidget {
 
 class _ResultPageState extends State<ResultPage> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController(); // 스크롤 컨트롤러 추가
   List<Map<String, String>> messages = [];
   bool isLoading = false;
 
@@ -36,19 +36,18 @@ class _ResultPageState extends State<ResultPage> {
           'message': prompt,
           'status': {
             'hunger': catStatus.hunger.value,
-            'intimacy': catStatus.intimacy.value,
+            'intimacy': catStatus.intimacy.value, // 친밀도 전달
           },
         }),
       );
 
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
-        final botResponse = jsonResponse['response'];
+        final botResponse = jsonResponse['response']; // 고양이의 대화 메시지
         final statusChanges = jsonResponse['status_changes'];
 
         if (statusChanges != null) {
           catStatus.updateStatus(
-            hungerDelta: statusChanges['hunger'] ?? 0,
             intimacyDelta: statusChanges['intimacy'] ?? 0,
           );
         }
@@ -56,20 +55,36 @@ class _ResultPageState extends State<ResultPage> {
         setState(() {
           messages.add({'role': 'assistant', 'content': botResponse});
         });
+        _scrollToBottom(); // 새 메시지 추가 후 자동 스크롤
       } else {
         setState(() {
-          messages.add({'role': 'assistant', 'content': 'Error: Unable to process.'});
+          messages.add(
+              {'role': 'assistant', 'content': 'Error: Unable to process.'});
         });
+        _scrollToBottom(); // 에러 메시지 표시 후 자동 스크롤
       }
     } catch (e) {
       setState(() {
         messages.add({'role': 'assistant', 'content': 'Error: $e'});
       });
+      _scrollToBottom(); // 에러 메시지 표시 후 자동 스크롤
     } finally {
       setState(() {
         isLoading = false;
       });
     }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
@@ -80,6 +95,7 @@ class _ResultPageState extends State<ResultPage> {
         children: [
           Expanded(
             child: ListView.builder(
+              controller: _scrollController, // 스크롤 컨트롤러 연결
               itemCount: messages.length + (isLoading ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index >= messages.length) {
@@ -91,7 +107,8 @@ class _ResultPageState extends State<ResultPage> {
                 final message = messages[index];
                 final isUser = message['role'] == 'user';
                 return Container(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment:
+                      isUser ? Alignment.centerRight : Alignment.centerLeft,
                   padding: const EdgeInsets.all(8.0),
                   child: Container(
                     decoration: BoxDecoration(
@@ -106,29 +123,35 @@ class _ResultPageState extends State<ResultPage> {
             ),
           ),
           const Divider(height: 1.0),
-          Container(
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            color: Colors.white,
-            child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      decoration:
-                          const InputDecoration.collapsed(hintText: "메시지를 입력하세요"),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: const InputDecoration.collapsed(
+                      hintText: "메시지를 입력하세요",
                     ),
+                    onSubmitted: (_) => sendMessage(), // 엔터키 처리
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: sendMessage,
-                  ),
-                ],
-              ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: sendMessage,
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose(); // 컨트롤러 해제
+    super.dispose();
   }
 }
