@@ -1,12 +1,15 @@
-// main.dart
 import 'package:flutter/material.dart';
-import 'cat_game.dart';
+import 'flameui.dart';
 import 'chat.dart';
 import 'status.dart';
+import 'day.dart';
+import 'touch.dart';
+import 'eatsleep.dart';
+import 'day10_game.dart';
+import 'game_screen.dart';
+import 'play.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await catStatus.loadStatus(); // 로컬 저장된 상태 로드
+void main() {
   runApp(const MyApp());
 }
 
@@ -17,10 +20,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      title: 'Cat Game',
       initialRoute: '/',
       routes: {
         '/': (context) => GameScreen(),
-        '/chat': (context) => const ResultPage(),
+        '/chat': (context) => const ChatScreen(),
+        '/day10Game': (context) => const Day10GameScreen(),
+        '/play': (context) => const PlayScreen(),
       },
     );
   }

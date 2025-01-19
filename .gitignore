@@ -142,3 +142,8 @@ out/
 # Logs
 *.log
 logs/
+
+#개발용 파일
+z/
+
+venv/
