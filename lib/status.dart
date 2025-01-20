@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class CatStatus {
   ValueNotifier<int> intimacy = ValueNotifier<int>(1); // 초기값 1
   ValueNotifier<int> energy = ValueNotifier<int>(40); // 초기값 40
-  ValueNotifier<int> fatigue = ValueNotifier<int>(0);
+  ValueNotifier<int> fatigue = ValueNotifier<int>(0); // 초기값 0
 
   void updateStatus({
     int intimacyDelta = 0,
@@ -15,8 +15,9 @@ class CatStatus {
     print("Energy delta: $energyDelta");
 
     intimacy.value = (intimacy.value + intimacyDelta).clamp(1, 10);
-    energy.value = (energy.value + energyDelta).clamp(0, 100);
+    energy.value = (energy.value + energyDelta).clamp(0, 100 - fatigue.value);
     fatigue.value = (fatigue.value + fatigueDelta).clamp(0, 100);
+    
 
     print("After update - Energy: ${energy.value}");
   }

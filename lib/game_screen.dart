@@ -13,28 +13,32 @@ class UIComponents {
     return ValueListenableBuilder<int>(
       valueListenable: energy,
       builder: (context, value, _) {
-        final color = value > 70
+        final clampedValue = value.clamp(0, 100); // 0~100 범위로 강제
+        final color = clampedValue > 70
             ? Colors.green
-            : (value > 30 ? Colors.yellow : Colors.red);
+            : (clampedValue > 30 ? Colors.yellow : Colors.red);
         return Container(
           height: 30,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.black, width: 2),
-            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.black, width: 2.5),
+            borderRadius: BorderRadius.circular(8), // 테두리 둥굴게
           ),
-          child: Stack(
-            children: [
-              FractionallySizedBox(
-                widthFactor: value / 100,
-                child: Container(color: color),
-              ),
-              Center(
-                child: Text(
-                  '$value%',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(6), // 내부 색상 바 둥굴게(외부에 채울 정도)
+            child: Stack(
+              children: [
+                FractionallySizedBox(
+                  widthFactor: clampedValue / 100,
+                  child: Container(color: color),
                 ),
-              ),
-            ],
+                Center(
+                  child: Text(
+                    '$clampedValue%',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -46,7 +50,7 @@ class UIComponents {
     required String backgroundImage,
     required VoidCallback onTap,
   }) {
-    return Container(
+    return Container( // 버튼 형식
       height: 80,
       width: 80,
       decoration: BoxDecoration(
@@ -95,7 +99,7 @@ class GameScreen extends StatelessWidget {
             child: UIComponents.buildEnergyBar(catStatus.energy),
           ),
 
-          // Cat 버튼 복원
+          // Cat 정보 버튼
           Positioned(
             top: 120,
             left: 20,
@@ -105,6 +109,13 @@ class GameScreen extends StatelessWidget {
               onTap: () {
                 print("Cat button pressed");
                 // 고양이 정보 팝업 등의 로직 추가 가능
+                // 에너지 값을 10 줄이고 0으로 제한
+                catStatus.fatigue.value += 5;
+                catStatus.energy.value -= 5;
+
+                // 현재 에너지 값을 출력 (디버깅용)
+                print("Current energy: ${catStatus.energy.value}");
+                print("Current fatigue: ${catStatus.fatigue.value}");
               },
             ),
           ),

@@ -44,7 +44,7 @@ class CatGame extends FlameGame with TapDetector {
         style: const TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: Colors.blueAccent,
+          color: Colors.white,
         ),
       ),
     );
