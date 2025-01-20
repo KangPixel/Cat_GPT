@@ -1,47 +1,40 @@
-// status.dart
+//친밀도, 에너지, 피로도 관리
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class CatStatus {
-  ValueNotifier<int> hunger = ValueNotifier(100);
-  ValueNotifier<int> intimacy = ValueNotifier(0);
-  // ValueNotifier<int> speed = ValueNotifier(0);
-  // ValueNotifier<int> stamina = ValueNotifier(0);
-  // ValueNotifier<int> burst = ValueNotifier(0);
-
-  Future<void> loadStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    hunger.value = prefs.getInt('hunger') ?? 100;
-    intimacy.value = prefs.getInt('intimacy') ?? 0;
-    // speed.value = prefs.getInt('speed') ?? 0;
-    // stamina.value = prefs.getInt('stamina') ?? 0;
-    // burst.value = prefs.getInt('burst') ?? 0;
-  }
-
-  Future<void> saveStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs
-      ..setInt('hunger', hunger.value)
-      ..setInt('intimacy', intimacy.value)
-      // ..setInt('speed', speed.value)
-      // ..setInt('stamina', stamina.value)
-      // ..setInt('burst', burst.value)
-      ;
-  }
+  ValueNotifier<int> intimacy = ValueNotifier<int>(1); // 초기값 1
+  ValueNotifier<int> energy = ValueNotifier<int>(40); // 초기값 40
+  ValueNotifier<int> fatigue = ValueNotifier<int>(0); // 초기값 0
 
   void updateStatus({
-    int hungerDelta = 0,
     int intimacyDelta = 0,
-    int speedDelta = 0,
-    int staminaDelta = 0,
-    int burstDelta = 0,
+    int energyDelta = 0,
+    int fatigueDelta = 0,
   }) {
-    hunger.value = (hunger.value + hungerDelta).clamp(0, 100);
-    intimacy.value = (intimacy.value + intimacyDelta).clamp(0, 100);
-    // speed.value = (speed.value + speedDelta).clamp(0, 100);
-    // stamina.value = (stamina.value + staminaDelta).clamp(0, 100);
-    // burst.value = (burst.value + burstDelta).clamp(0, 100);
-    saveStatus();
+    print("Before update - Energy: ${energy.value}");
+    print("Energy delta: $energyDelta");
+
+    intimacy.value = (intimacy.value + intimacyDelta).clamp(1, 10);
+    energy.value = (energy.value + energyDelta).clamp(0, 100 - fatigue.value);
+    fatigue.value = (fatigue.value + fatigueDelta).clamp(0, 100);
+    
+
+    print("After update - Energy: ${energy.value}");
+  }
+
+  void resetStatus() {
+    // 직접 값을 설정하되, 로그 출력 추가
+    print("Resetting status:");
+    intimacy.value = 1;
+    print("Intimacy reset to 1");
+    energy.value = 40;
+    print("Energy reset to 40");
+    fatigue.value = 0;
+    print("Fatigue reset to 0");
+  }
+
+  void resetFatigue() {
+    fatigue.value = 0;
   }
 }
 
