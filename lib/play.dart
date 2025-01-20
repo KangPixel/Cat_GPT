@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'status.dart';
 import 'day10_stats.dart';
+import 'package:flutter_blackjack_pkg/view/bj_game.dart';
+import 'package:flame/game.dart';
+import 'package:flutter_suika_game/ui/main_game.dart';
+import 'package:ski_master/game/game.dart'; // ski_master의 게임 import
 
 class PlayScreen extends StatelessWidget {
   const PlayScreen({Key? key}) : super(key: key);
@@ -14,8 +18,10 @@ class PlayScreen extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(title: const Text('Play')),
             body: const Center(
-              child: Text('Need at least 50 energy to play!',
-                  style: TextStyle(fontSize: 20)),
+              child: Text(
+                'Need at least 50 energy to play!',
+                style: TextStyle(fontSize: 20),
+              ),
             ),
           );
         }
@@ -91,17 +97,65 @@ class PlayScreen extends StatelessWidget {
                     _buildGameCard(
                       'Ski',
                       'assets/images/ski.png',
-                      () => print('Ski selected'),
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Scaffold(
+                              appBar: AppBar(
+                                title: const Text('Ski Master'),
+                                leading: IconButton(
+                                  icon: const Icon(Icons.arrow_back),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                              ),
+                              body: SafeArea(
+                                child: GameWidget(
+                                  game:
+                                      SkiMasterGame(), // Ski Master 게임 인스턴스 생성
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     _buildGameCard(
                       'Blackjack',
                       'assets/images/blackjack.png',
-                      () => print('Blackjack selected'),
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const BlackJackGame(),
+                          ),
+                        );
+                      },
                     ),
                     _buildGameCard(
                       'Watermelon Game',
                       'assets/images/watermelon.png',
-                      () => print('Watermelon Game selected'),
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Scaffold(
+                              appBar: AppBar(
+                                title: const Text('Suika Game'),
+                                leading: IconButton(
+                                  icon: const Icon(Icons.arrow_back),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                              ),
+                              body: SafeArea(
+                                child: GameWidget(
+                                  game: MainGame(), // Watermelon 게임 인스턴스
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

@@ -8,10 +8,21 @@ environment:
   sdk: ">=3.5.4 <4.0.0"
 
 dependencies:
+  ski_master:
+    path: packages/ski_master
+  playing_cards: 0.3.1+9
+  flutter_blackjack_pkg:
+    path: packages/Flutter_Blackjack
+  flutter_suika_game:
+    path: packages/flutter_suika_game
   flutter:
     sdk: flutter
   flame: ^1.22.0
-  http: ^1.2.2 # 최신 버전 확인 후 조정 가능
+  flame_forge2d: ^0.16.0+2  # 추가
+  freezed_annotation: ^2.4.1  # 추가
+  get_it: ^7.6.4  # 추가
+  uuid: ^4.2.1  # 추가
+  http: ^1.2.2
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.3.5
 
@@ -19,6 +30,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  build_runner: ^2.4.7  # 추가
+  freezed: ^2.4.6  # 추가
+  pedantic_mono: ^1.25.0  # 추가
 
 flutter:
   uses-material-design: true
@@ -26,3 +40,8 @@ flutter:
     - assets/images/background.png
     - assets/images/grayCat.png
     - assets/images/grayCat_open_mouth.png
+    - assets/images/suika_game/
+    - assets/images/
+    - assets/audio/
+    - assets/tiles/
+    
