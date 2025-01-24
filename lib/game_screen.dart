@@ -9,31 +9,35 @@ import 'eatsleep.dart';
 
 // UI 구성 요소들을 제공하는 클래스
 class UIComponents {
-  static Widget buildEnergyBar(ValueNotifier<int> energy) {
+  // 에너지 막대 그래프 생성
+  static Widget _buildEnergyBar(ValueNotifier<int> energy) {
     return ValueListenableBuilder<int>(
       valueListenable: energy,
       builder: (context, value, _) {
         final clampedValue = value.clamp(0, 100); // 0~100 범위로 강제
         final color = clampedValue > 70
-            ? Colors.green
-            : (clampedValue > 30 ? Colors.yellow : Colors.red);
+            ? Colors.green                                        // 70% 이상이면 초록
+            : (clampedValue > 30 ? Colors.yellow : Colors.red); // 70% 미만이고 30% 이상이면 노랑, 그 이하면 빨강
         return Container(
           height: 30,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.black, width: 2.5),
-            borderRadius: BorderRadius.circular(8), // 테두리 둥굴게
+            borderRadius: BorderRadius.circular(13), // 테두리 둥굴게
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(6), // 내부 색상 바 둥굴게(외부에 채울 정도)
+            borderRadius: BorderRadius.circular(13), // 내부 색상 바 둥굴게(외부에 채울 정도)
             child: Stack(
               children: [
+                Container(
+                  color: Colors.white,  // 빈 화면(배경)을 하얀색 
+                ),
                 FractionallySizedBox(
-                  widthFactor: clampedValue / 100,
+                  widthFactor: clampedValue / 100,  // 100분율
                   child: Container(color: color),
                 ),
                 Center(
                   child: Text(
-                    '$clampedValue%',
+                    '$clampedValue%', // 현재 에너지 표시
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -45,20 +49,52 @@ class UIComponents {
     );
   }
 
+  // 상태(스테이터스) 막대 그래프 생성
+  static Widget _buildStatBar(String label, int value, Color color, int percentage) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text( // 스테이터스 이름 및 현재 량
+          '$label: $value',
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        const SizedBox(height: 4.0),
+        Container(
+          height: 20,
+          decoration: BoxDecoration(  // 외각선
+            border: Border.all(color: Colors.black, width: 1.5),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: FractionallySizedBox(  // percentage 만큼 % 표시
+            widthFactor: value / percentage,
+            alignment: Alignment.centerLeft,
+            child: Container(
+              decoration: BoxDecoration(
+                color: color, // 색상을 받아와서 지정
+                borderRadius: BorderRadius.circular(6.0),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 버튼 형태 생성
   static Widget buildButtonWithBackground({
-    required String label,
-    required String backgroundImage,
-    required VoidCallback onTap,
+    required String label,            // label
+    required String backgroundImage,  // 배경 이미지 받기
+    required VoidCallback onTap,      // 누를 시 작동
   }) {
     return Container( // 버튼 형식
       height: 80,
       width: 80,
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: AssetImage(backgroundImage),
+          image: AssetImage(backgroundImage), // 이미지 받아온 것
           fit: BoxFit.cover,
         ),
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: BorderRadius.circular(8.0), // 둥굴게
       ),
       child: ElevatedButton(
         onPressed: onTap,
@@ -81,12 +117,13 @@ void showCatProfilePopup(BuildContext context) {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
+        backgroundColor: Colors.yellow[50], // 기본 배경 색 조정
         contentPadding: EdgeInsets.zero,
         content: Container(
           width: MediaQuery.of(context).size.width * 0.8,
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(12.0),  // 모서리 둥굴게
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -128,20 +165,43 @@ void showCatProfilePopup(BuildContext context) {
                 ],
               ),
               const SizedBox(height: 20.0),
-              // 에너지, 피로도, 친밀도
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildStatBar('에너지', (catStatus.energy.value ~/ 10), Colors.green),
-                  const SizedBox(height: 10.0),
-                  _buildStatBar('피로도', catStatus.fatigue.value, Colors.yellow),
-                  const SizedBox(height: 10.0),
-                  _buildStatBar('친밀도', catStatus.intimacy.value, Colors.blue),
-                ],
+              // 에너지, 피로도, 친밀도 그래프 창
+              Container(
+                decoration: BoxDecoration(  // 상태 배경 추가
+                  color: const Color.fromARGB(255, 105, 35, 30),
+                  borderRadius: BorderRadius.circular(13.0),
+                ),
+                
+                padding: const EdgeInsets.all(16.0), // 여백 추가
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Align(  // 텍스트만 적용시킬려고 이격 함
+                      alignment: Alignment.center, // 텍스트만 중앙 정렬
+                      child: Text(
+                        '에너지',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 17, 
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10.0),
+                    UIComponents._buildEnergyBar(catStatus.energy),
+                    const SizedBox(height: 15.0),
+                    UIComponents._buildStatBar('피로도', catStatus.fatigue.value, Colors.deepOrange, 100),
+                    const SizedBox(height: 5.0),
+                    UIComponents._buildStatBar('친밀도', catStatus.intimacy.value, Colors.green, 10),
+                    const SizedBox(height: 8.0),
+                  ],
+                ),
               ),
               const SizedBox(height: 20.0),
               // 닫기 버튼을 중앙에 배치
               Center(
+                // 닫기 버튼
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -154,38 +214,6 @@ void showCatProfilePopup(BuildContext context) {
         ),
       );
     },
-  );
-}
-
-
-// 상태 막대 그래프 생성 함수
-Widget _buildStatBar(String label, int value, Color color) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        '$label: $value''0%',
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-      ),
-      const SizedBox(height: 4.0),
-      Container(
-        height: 20,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black, width: 1.5),
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        child: FractionallySizedBox(
-          widthFactor: value / 10,
-          alignment: Alignment.centerLeft,
-          child: Container(
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(6.0),
-            ),
-          ),
-        ),
-      ),
-    ],
   );
 }
 
@@ -210,28 +238,19 @@ class GameScreen extends StatelessWidget {
             top: 50,
             left: 20,
             right: 20,
-            child: UIComponents.buildEnergyBar(catStatus.energy),
+            child: UIComponents._buildEnergyBar(catStatus.energy),
           ),
 
           // Cat 정보 버튼
           Positioned(
             top: 120,
             left: 20,
-            child: UIComponents.buildButtonWithBackground(
+            child: UIComponents.buildButtonWithBackground(  // UIComponents의 buildButtonWithBackground 형식 불러오기
               label: 'Cat',
               backgroundImage: 'assets/images/grayCat.png',
               onTap: () {
-                print("Cat button pressed");
-                // 고양이 정보 팝업 등의 로직 추가 가능
+                print("Cat button pressed");  // 디버깅 용도
                 showCatProfilePopup(context); // 팝업 창 호출
-
-                // 에너지 값을 10 줄이고 0으로 제한
-                // catStatus.fatigue.value += 5;
-                // catStatus.energy.value -= 5;
-
-                // 현재 에너지 값을 출력 (디버깅용)
-                // print("Current energy: ${catStatus.energy.value}");
-                // print("Current fatigue: ${catStatus.fatigue.value}");
               },
             ),
           ),
@@ -245,7 +264,7 @@ class GameScreen extends StatelessWidget {
               backgroundImage: 'assets/images/grayCat.png',
               onTap: () {
                 print("Eat pressed");
-                eatAction();
+                eatAction();  // eatsleep.dart 파일에서 불러옴
               },
             ),
           ),

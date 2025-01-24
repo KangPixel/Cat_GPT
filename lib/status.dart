@@ -16,7 +16,7 @@ class CatStatus {
 
     intimacy.value = (intimacy.value + intimacyDelta).clamp(1, 10);
     energy.value = (energy.value + energyDelta).clamp(0, 100 - fatigue.value);
-    fatigue.value = (fatigue.value + fatigueDelta).clamp(0, 100);
+    fatigue.value = (fatigue.value + fatigueDelta).clamp(0, 55);
     
 
     print("After update - Energy: ${energy.value}");
