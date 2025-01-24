@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'status.dart';
 import 'day10_stats.dart';
+import 'package:flutter_blackjack_pkg/view/bj_game.dart';
+import 'package:flame/game.dart';
+import 'package:flutter_suika_game/ui/main_game.dart';
+import 'package:ski_master/game/game.dart';
+import 'package:jump_rope_game/jump_rope_game.dart';
 
 class PlayScreen extends StatelessWidget {
   const PlayScreen({Key? key}) : super(key: key);
@@ -14,8 +19,10 @@ class PlayScreen extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(title: const Text('Play')),
             body: const Center(
-              child: Text('Need at least 50 energy to play!',
-                  style: TextStyle(fontSize: 20)),
+              child: Text(
+                'Need at least 50 energy to play!',
+                style: TextStyle(fontSize: 20),
+              ),
             ),
           );
         }
@@ -86,22 +93,62 @@ class PlayScreen extends StatelessWidget {
                     _buildGameCard(
                       'Jump Rope',
                       'assets/images/jump_rope.png',
-                      () => print('Jump Rope selected'),
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => _buildGameScreen(
+                              context,
+                              JumpRopeGame(),
+                              'Jump Rope',
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     _buildGameCard(
                       'Ski',
                       'assets/images/ski.png',
-                      () => print('Ski selected'),
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => _buildGameScreen(
+                              context,
+                              SkiMasterGame(),
+                              'Ski Master',
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     _buildGameCard(
                       'Blackjack',
                       'assets/images/blackjack.png',
-                      () => print('Blackjack selected'),
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const BlackJackGame(),
+                          ),
+                        );
+                      },
                     ),
                     _buildGameCard(
                       'Watermelon Game',
                       'assets/images/watermelon.png',
-                      () => print('Watermelon Game selected'),
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => _buildGameScreen(
+                              context,
+                              MainGame(),
+                              'Suika Game',
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -132,6 +179,31 @@ class PlayScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(title, style: const TextStyle(fontSize: 16)),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGameScreen(BuildContext context, FlameGame game, String title) {
+    final focusNode = FocusNode();
+    return FocusScope(
+      autofocus: true,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(title),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              focusNode.unfocus(); // 포커스 해제
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+        body: SafeArea(
+          child: GameWidget(
+            game: game,
+            focusNode: focusNode,
+          ),
         ),
       ),
     );
