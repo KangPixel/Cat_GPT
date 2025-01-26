@@ -118,10 +118,6 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
 
     if (!isReady || isGameOver) return;
 
-    // 추가: 디버그 로그
-    print('Checking collision: ${ropeWithBears.checkCollision()}');
-    print('Cat jumping status: ${cat.isJumping}');
-
     // 줄과 고양이 충돌 체크
     if (ropeWithBears.checkCollision()) {
       if (cat.isJumping) {
