@@ -11,7 +11,7 @@ class Cat extends SpriteComponent {
   double initialY = 0;
   double jumpTime = 0;
   double prepareJumpTime = 0;
-  final double jumpDuration = 0.4;
+  final double jumpDuration = 0.3;
   final double prepareJumpDuration = 0.2;
 
   Cat() : super(size: Vector2(120, 120), anchor: Anchor.center);

@@ -1,4 +1,3 @@
-// bear.dart (또는 rope_with_bears.dart)
 import 'package:flame/components.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -65,13 +64,14 @@ class RopeWithBears extends PositionComponent {
 
     // angle < 0.4 or angle > 4.0 => 줄이 '앞쪽'
     // 그 밖(0.4 <= angle <= 4.0) => 줄이 '뒤쪽'
+    //else부분이 줄을 넘은 직후구간
     if (angle < 0.4 || angle > 4.0) {
       priority = 2;
       hasJustGoneBehind = false;
     } else {
       priority = 0;
 
-      // “처음 뒤쪽 구간에 들어갔을 때”만 속도 변경
+      // "처음 뒤쪽 구간에 들어갔을 때"만 속도 변경
       if (!hasJustGoneBehind) {
         hasJustGoneBehind = true;
         if (!firstRound) {
@@ -154,7 +154,7 @@ class RopeWithBears extends PositionComponent {
 
   /// 고양이와 충돌 체크
   bool checkCollision() {
-    // “줄이 앞으로 움직일 때(π~1.5π)”만 체크하는 기존 로직
+    // "줄이 앞으로 움직일 때(π~1.5π)"만 체크하는 기존 로직
     if (angle > math.pi && angle < math.pi * 1.5) return false;
 
     final ropeY = position.y - (ropeAmplitude * math.sin(angle));
