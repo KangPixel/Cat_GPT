@@ -18,7 +18,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green[800],
+      backgroundColor: const Color.fromARGB(255, 206, 10, 102),
       appBar: AppBar(
         title: const Text('Blackjack'),
         leading: IconButton(

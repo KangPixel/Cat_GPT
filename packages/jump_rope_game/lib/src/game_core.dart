@@ -4,54 +4,88 @@ import 'package:flame/events.dart';
 import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:math' as math;
+import 'dart:async' as async;
 
-import 'player_character.dart';
-import 'jump_rope.dart';
+import 'cat.dart';
+import 'cat_shadow.dart';
+import 'bear.dart';
+import 'background.dart';
+import 'star.dart';
+
+// 싱글턴 매니저 (점수/게임오버 관리)
+import 'jump_rope_manager.dart';
 
 class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
-  late final Player player;
-  late final Rope rope;
+  late final Cat cat;
+  late CatShadow catShadow;
+  late final RopeWithBears ropeWithBears;
+
+  /// 화면에 표시할 로컬 점수 (jumpRopeManager와 별개)
   int score = 0;
+
   late TextComponent scoreText;
-  late TextComponent comboText;
-  int comboCount = 0;
   bool isGameOver = false;
   bool isReady = false;
-  final random = math.Random();
+  bool gameStarted = false; // 첫 점프 전까지 점수 카운트 안 함
 
-  // 줄넘기 상태 관리
-  double normalSpeed = 5.0; // 기본 속도 조정
-  double currentSpeed = 5.0;
-  bool isBackward = false;
-  double speedChangeTimer = 0;
-  double nextSpeedChange = 3.0;
-  bool isPaused = false;
-  double pauseTimer = 0;
-  double pauseDuration = 0.5;
+  int lastPriority = 2;
+  bool scoredThisRotation = false;
+
+  async.Timer? starSpawnTimer;
 
   @override
   Future<void> onLoad() async {
-    // 배경 설정
-    add(RectangleComponent(
-      size: size,
-      paint: Paint()..color = const Color(0xFFB8E1FF),
-    ));
+    await super.onLoad();
 
-    // 플레이어 추가 (중앙에 위치)
-    player = Player();
-    player.position = Vector2(size.x / 2, size.y * 0.7);
-    add(player);
+    final background = Background();
+    background.size = size;
+    add(background);
 
-    // 줄 추가
-    rope = Rope();
-    rope.position = Vector2(size.x / 2, size.y * 0.7);
-    add(rope);
+    cat = Cat()..priority = 1;
+    ropeWithBears = RopeWithBears(
+      catBounds: cat.size,
+      catPosition: cat.position,
+    )..priority = 2;
 
-    // 점수 표시
+    add(cat);
+    add(ropeWithBears);
+
+    double floorY = size.y * 0.6;
+    cat.initializePosition(size);
+    ropeWithBears.initializePosition(size, cat.position);
+
+    catShadow = CatShadow(cat: cat, floorY: floorY);
+    add(catShadow);
+
+    _addUI();
+    _showReadyMessage();
+
+    // ★ 여기서 더 이상 jumpRopeManager.startNewSession()을 부르지 않습니다. ★
+    //   세션 초기화는 parent(PlayScreen)에서만 하도록.
+
+    // 별 생성 타이머(2초 후 시작)
+    Future.delayed(const Duration(seconds: 2), () {
+      startSpawningStars();
+    });
+  }
+
+  void startSpawningStars() {
+    starSpawnTimer = async.Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!isGameOver && isReady) {
+        spawnStar();
+      }
+    });
+  }
+
+  void spawnStar() {
+    final star1 = star(travelTime: 3.0, points: 20);
+    add(star1);
+  }
+
+  void _addUI() {
     scoreText = TextComponent(
       text: 'Score: 0',
-      position: Vector2(20, 20),
+      position: Vector2(20, 30),
       textRenderer: TextPaint(
         style: const TextStyle(
           fontSize: 24,
@@ -61,27 +95,11 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
       ),
     );
     add(scoreText);
+  }
 
-    // 콤보 표시
-    comboText = TextComponent(
-      text: 'Combo: 0',
-      position: Vector2(20, 50),
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          fontSize: 24,
-          color: Colors.black,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-    add(comboText);
-
-    // 초기 속도 설정
-    currentSpeed = normalSpeed;
-
-    // 준비 메시지 표시
+  void _showReadyMessage() {
     final readyText = TextComponent(
-      text: 'Ready...\nPress SPACE, UP or W to Jump\nPress R to Restart',
+      text: 'Ready...\nPress SPACE to Jump\nPress R to Restart',
       position: Vector2(size.x / 2, size.y / 2),
       anchor: Anchor.center,
       textRenderer: TextPaint(
@@ -93,49 +111,12 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
       ),
     );
     add(readyText);
-    readyText.add(RemoveEffect(delay: 2));
 
-    // 2초 후 게임 시작
     Future.delayed(const Duration(seconds: 2), () {
+      readyText.removeFromParent();
       isReady = true;
+      ropeWithBears.start();
     });
-  }
-
-  void updateRopeState() {
-    if (isPaused) {
-      pauseTimer += 0.016;
-      if (pauseTimer >= pauseDuration) {
-        isPaused = false;
-        pauseTimer = 0;
-
-        if (random.nextDouble() < 0.3) {
-          isBackward = !isBackward;
-        }
-        if (random.nextDouble() < 0.3) {
-          currentSpeed = normalSpeed * (1 + random.nextDouble() * 0.5);
-        }
-      }
-      return;
-    }
-
-    speedChangeTimer += 0.016;
-    if (speedChangeTimer >= nextSpeedChange) {
-      speedChangeTimer = 0;
-      nextSpeedChange = 2 + random.nextDouble() * 4;
-
-      double rand = random.nextDouble();
-      if (rand < 0.2) {
-        isPaused = true;
-        pauseTimer = 0;
-      } else if (rand < 0.5) {
-        isBackward = !isBackward;
-      } else if (rand < 0.8) {
-        currentSpeed = normalSpeed * (0.7 + random.nextDouble() * 0.6);
-      } else {
-        isBackward = false;
-        currentSpeed = normalSpeed;
-      }
-    }
   }
 
   @override
@@ -144,97 +125,55 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
 
     if (!isReady || isGameOver) return;
 
-    updateRopeState();
+    // 점수 로직 - gameStarted가 true일 때만 점수 추가
+    if (gameStarted && lastPriority == 2 && ropeWithBears.priority == 0) {
+      if (!scoredThisRotation) {
+        score += 10;
+        jumpRopeManager.addScore(10); // 싱글턴 매니저에도 누적
+        scoredThisRotation = true;
+      }
+    } else if (lastPriority == 0 && ropeWithBears.priority == 2) {
+      scoredThisRotation = false;
+    }
 
-    // 줄과 플레이어의 충돌 체크
-    if (rope.isAtJumpPosition()) {
-      if (player.isJumping) {
-        // 성공적인 점프
-        score += (10 * (1 + comboCount * 0.1)).round();
-        comboCount++;
+    lastPriority = ropeWithBears.priority;
 
-        // 콤보 효과 표시
-        if (comboCount > 1) {
-          _showComboEffect();
+    // 줄과 고양이 충돌 체크 (줄이 앞으로 왔을 때)
+    if (ropeWithBears.checkCollision() && !cat.isJumping) {
+      gameOver();
+    }
+
+    // 별과 충돌 체크
+    for (final component in children) {
+      if (component is StarComponent) {
+        final starBounds = component.toRect();
+        final catBounds = Rect.fromCenter(
+          center: Offset(cat.position.x, cat.position.y),
+          width: cat.size.x * 0.5,
+          height: cat.size.y * 0.5,
+        );
+
+        if (starBounds.overlaps(catBounds)) {
+          score += component.points;
+          jumpRopeManager.addScore(component.points); // 매니저에도 추가
+          component.removeFromParent();
         }
-      } else {
-        // 실패
-        gameOver();
       }
     }
 
     scoreText.text = 'Score: $score';
-    comboText.text = 'Combo: $comboCount';
-  }
-
-  void _showComboEffect() {
-    final comboEffect = TextComponent(
-      text: '$comboCount Combo!',
-      position: Vector2(size.x / 2, size.y * 0.4),
-      anchor: Anchor.center,
-      textRenderer: TextPaint(
-        style: TextStyle(
-          fontSize: 32,
-          color: Colors.orange[700],
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-
-    add(comboEffect);
-
-    comboEffect.add(
-      MoveEffect.by(
-        Vector2(0, -50),
-        EffectController(duration: 0.5),
-      ),
-    );
-
-    comboEffect.add(
-      RemoveEffect(delay: 0.5),
-    );
-  }
-
-  @override
-  void onTapDown(TapDownInfo info) {
-    super.onTapDown(info);
-    if (!isGameOver && isReady) {
-      player.jump();
-    }
-  }
-
-  @override
-  KeyEventResult onKeyEvent(
-      KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (event is KeyDownEvent) {
-      print(
-          'KeyDownEvent detected: KeyCode: ${event.physicalKey.debugName}, LogicalKey: ${event.logicalKey.keyLabel}');
-    }
-
-    if (event is KeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.space ||
-          event.logicalKey == LogicalKeyboardKey.keyW ||
-          event.logicalKey == LogicalKeyboardKey.arrowUp) {
-        if (!isGameOver && isReady) {
-          print('Jump key pressed!');
-          player.jump();
-        }
-        return KeyEventResult.handled;
-      } else if (event.logicalKey == LogicalKeyboardKey.keyR) {
-        print('Reset key pressed!');
-        resetGame();
-        return KeyEventResult.handled;
-      }
-    }
-
-    return KeyEventResult.ignored;
   }
 
   void gameOver() {
     isGameOver = true;
+    starSpawnTimer?.cancel();
+
+    // 매니저에 게임오버 횟수 +1
+    jumpRopeManager.incrementGameOver();
+
     add(
       TextComponent(
-        text: 'Game Over!\nScore: $score\nPress R to restart',
+        text: 'Game Over!\nScore: $score\nPress R to Restart',
         position: Vector2(size.x / 2, size.y / 2),
         anchor: Anchor.center,
         textRenderer: TextPaint(
@@ -248,38 +187,62 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
     );
   }
 
+  @override
+  KeyEventResult onKeyEvent(
+    KeyEvent event,
+    Set<LogicalKeyboardKey> keysPressed,
+  ) {
+    if (event is KeyDownEvent) {
+      // R 키 => 게임 재시작
+      if (event.logicalKey == LogicalKeyboardKey.keyR) {
+        resetGame();
+        return KeyEventResult.handled;
+      }
+
+      // 스페이스 => 점프
+      if (event.logicalKey == LogicalKeyboardKey.space) {
+        if (!isGameOver && isReady && !cat.isJumping) {
+          if (!gameStarted) {
+            gameStarted = true; // 첫 점프에서만 true
+          }
+          cat.jump();
+          return KeyEventResult.handled;
+        }
+      }
+    }
+    return KeyEventResult.ignored;
+  }
+
+  /// R 키로 “로컬 게임”만 리셋 → 매니저 점수/오버 횟수는 그대로 유지
   void resetGame() {
     score = 0;
-    comboCount = 0;
+    lastPriority = 2;
+    scoredThisRotation = false;
     isGameOver = false;
     isReady = false;
-    currentSpeed = normalSpeed;
-    isBackward = false;
-    isPaused = false;
-    speedChangeTimer = 0;
-    nextSpeedChange = 3.0;
-    player.reset();
-    rope.reset();
+    gameStarted = false;
 
-    // 준비 메시지 다시 표시
-    final readyText = TextComponent(
-      text: 'Ready...\nPress SPACE, UP or W to Jump\nPress R to Restart',
-      position: Vector2(size.x / 2, size.y / 2),
-      anchor: Anchor.center,
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          fontSize: 32,
-          color: Colors.blue,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-    add(readyText);
-    readyText.add(RemoveEffect(delay: 2));
+    starSpawnTimer?.cancel();
 
-    // 2초 후 게임 다시 시작
+    cat.reset();
+    ropeWithBears.reset();
+
+    // 화면에 있는 StarComponent 제거
+    children.whereType<StarComponent>().forEach(remove);
+
+    // "Game Over!" 텍스트 제거
+    children
+        .whereType<TextComponent>()
+        .where((text) => text.text.contains('Game Over'))
+        .forEach(remove);
+
+    _showReadyMessage();
+
+    // ★ 여기서도 startNewSession() 호출 안 함! (누적 계속)
+    // jumpRopeManager.startNewSession();  <-- 제거
+
     Future.delayed(const Duration(seconds: 2), () {
-      isReady = true;
+      startSpawningStars();
     });
   }
 }
