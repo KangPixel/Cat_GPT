@@ -103,8 +103,9 @@ class UIComponents {
           shadowColor: Colors.transparent,
         ),
         child: Text(
-          label,
-          style: const TextStyle(fontSize: 16, color: Colors.white),
+          ''
+          //label,
+          //style: const TextStyle(fontSize: 16, color: Colors.white),
         ),
       ),
     );
@@ -135,7 +136,7 @@ void showCatProfilePopup(BuildContext context) {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8.0),
                     child: Image.asset(
-                      'assets/images/grayCat.png',
+                      'assets/images/gray_cat.png',
                       width: 80,
                       height: 80,
                       fit: BoxFit.cover,
@@ -226,42 +227,99 @@ class GameScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          '게임명 / 로고',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.cyan[50],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline), // 정보 버튼
+            onPressed: () {
+              showCatProfilePopup(context); // 정보 팝업 창 호출
+            },
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           // Flame 게임 화면 전체를 차지
           Positioned.fill(
-            child: GameWidget(game: game),
+            child: GameWidget(
+              game: game,
+              backgroundBuilder: (BuildContext context) {
+                return Container(
+                  color: Colors.cyan[50],
+                );
+              },
+              ),
           ),
 
           // 에너지 바
-          Positioned(
-            top: 50,
-            left: 20,
-            right: 20,
-            child: UIComponents._buildEnergyBar(catStatus.energy),
-          ),
+          // Positioned(
+          //   top: 50,
+          //   left: 20,
+          //   right: 20,
+          //   child: UIComponents._buildEnergyBar(catStatus.energy),
+          // ),
 
           // Cat 정보 버튼
           Positioned(
-            top: 120,
-            left: 20,
-            child: UIComponents.buildButtonWithBackground(  // UIComponents의 buildButtonWithBackground 형식 불러오기
-              label: 'Cat',
-              backgroundImage: 'assets/images/grayCat.png',
+            bottom: 140,
+            left: MediaQuery.of(context).size.width / 2 - 200, // 화면 너비의 절반 - 버튼 너비의 절반
+            child: GestureDetector(
               onTap: () {
-                print("Cat button pressed");  // 디버깅 용도
+                print("Cat button pressed"); // 디버깅 용도
                 showCatProfilePopup(context); // 팝업 창 호출
               },
+              child: Container(
+                height: 60,
+                width: 400,
+                decoration: BoxDecoration(
+                  image: const DecorationImage(
+                    image: AssetImage('assets/images/gray_cat.png'), // 배경 이미지
+                    fit: BoxFit.cover,
+                  ),
+                  borderRadius: BorderRadius.circular(50.0), // 모서리 둥글게
+                  border: Border.all(
+                    color: Colors.black, // 테두리 색
+                    width: 2.0,          // 테두리 두께
+                  ),
+                ),
+                alignment: Alignment.bottomCenter, // 텍스트 배치를 아래쪽으로
+                child: const Padding(
+                  padding: EdgeInsets.only(bottom: 4.0), // 텍스트와 아래쪽 여백 추가
+                  child: Text(
+                    'Cat',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
+                        Shadow( // 텍스트 그림자
+                          offset: Offset(1.0, 1.0),
+                          blurRadius: 2.0,
+                          color: Colors.black,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
 
           // Eat 버튼
           Positioned(
-            top: 210,
+            top: 30,
             left: 20,
             child: UIComponents.buildButtonWithBackground(
               label: 'Eat',
-              backgroundImage: 'assets/images/grayCat.png',
+              backgroundImage: 'assets/images/food.png',
               onTap: () {
                 print("Eat pressed");
                 eatAction();  // eatsleep.dart 파일에서 불러옴
@@ -271,11 +329,11 @@ class GameScreen extends StatelessWidget {
 
           // Sleep 버튼 (Nap -> Sleep)
           Positioned(
-            top: 300,
-            left: 20,
+            top: 30,
+            left: 110,
             child: UIComponents.buildButtonWithBackground(
               label: 'Sleep',
-              backgroundImage: 'assets/images/grayCat.png',
+              backgroundImage: 'assets/images/sleep.png',
               onTap: () {
                 print("Sleep pressed");
                 sleepAction(
@@ -290,7 +348,7 @@ class GameScreen extends StatelessWidget {
             left: 30,
             child: UIComponents.buildButtonWithBackground(
               label: 'Play',
-              backgroundImage: 'assets/images/grayCat.png',
+              backgroundImage: 'assets/images/play.png',
               onTap: () {
                 if (catStatus.energy.value >= 50) {
                   Navigator.pushNamed(context, '/play');
@@ -307,7 +365,7 @@ class GameScreen extends StatelessWidget {
             right: 30,
             child: UIComponents.buildButtonWithBackground(
               label: 'Talk',
-              backgroundImage: 'assets/images/grayCat_open_mouth.png',
+              backgroundImage: 'assets/images/speech_bubble.png',
               onTap: () => Navigator.pushNamed(context, '/chat'),
             ),
           ),
