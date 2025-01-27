@@ -9,7 +9,6 @@ import 'touch.dart';
 
 class CatGame extends FlameGame with TapDetector {
   static CatGame? instance;
-  late SpriteComponent background;
   late SpriteComponent cat;
   late TextComponent _countdown;
   late Sprite _normalSprite; // 일반 스프라이트 저장용
@@ -18,33 +17,29 @@ class CatGame extends FlameGame with TapDetector {
   @override
   Future<void> onLoad() async {
     instance = this;
-    background = SpriteComponent()
-      ..sprite = await loadSprite('background.png')
-      ..size = size;
-    add(background);
 
     // 스프라이트 미리 로드
-    _normalSprite = await loadSprite('grayCat.png');
-    _openMouthSprite = await loadSprite('grayCat_open_mouth.png');
+    _normalSprite = await loadSprite('gray_cat.png');
+    _openMouthSprite = await loadSprite('gray_cat_open_mouth.png');
 
     cat = SpriteComponent()
       ..sprite = _normalSprite
-      ..size = Vector2(size.x * 0.4, size.y * 0.4)
+      ..size = Vector2(size.x * 0.45, size.y * 0.4)
       ..position = Vector2(
-        size.x / 2 - size.x * 0.2,
-        size.y / 2 - size.y * 0.1,
+        size.x / 2 - size.x * 0.23,
+        size.y / 2 - size.y * 0.18,
       );
     add(cat);
 
     _countdown = TextComponent(
       text: 'D-day: ${dayManager.currentDay}',
-      position: Vector2(size.x * 0.8, size.y / 5.5),
+      position: Vector2(size.x * 0.8, size.y / 14.0),
       anchor: Anchor.topCenter,
       textRenderer: TextPaint(
         style: const TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: Colors.black,
         ),
       ),
     );
@@ -92,7 +87,7 @@ class FlameGameScreen extends StatelessWidget {
   final CatGame game = CatGame();
 
   FlameGameScreen({Key? key}) : super(key: key);
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
