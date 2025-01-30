@@ -1,4 +1,4 @@
-//flame으로 구현한 ui
+//flameui.dart flame으로 구현한 ui
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';

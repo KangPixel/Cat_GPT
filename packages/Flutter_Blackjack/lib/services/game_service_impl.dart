@@ -1,3 +1,5 @@
+//game_service_impl.dart
+
 import 'package:flutter_blackjack_pkg/models/player_model.dart';
 import 'package:flutter_blackjack_pkg/services/card_service_impl.dart';
 import 'package:flutter_blackjack_pkg/services/game_service.dart';
@@ -13,46 +15,57 @@ class GameServiceImpl extends GameService {
   late Player dealer;
   GameState gameState = GameState.equal;
 
-  GameServiceImpl() {
-    dealer = Player(_cardService.drawCards(2));
-    player = Player(_cardService.drawCards(2));
-  }
+  final CardServiceImpl _cardService = CardServiceImpl();
 
-  final CardService _cardService = CardServiceImpl();
+  GameServiceImpl() {
+    // 초기 생성 시점에 새 덱 + 2장씩 분배는 안 하고,
+    // 아래 startNewGame()에서 진행하도록
+    dealer = Player([]);
+    player = Player([]);
+  }
 
   @override
   void startNewGame() {
+    // 1. 새 덱 생성
+    _cardService.new52Deck();
+
+    // 2. 플레이어 / 딜러에게 카드 2장씩 배분
     player.hand = _cardService.drawCards(2);
     dealer.hand = _cardService.drawCards(2);
-    _cardService.new52Deck();
+
+    // 플레이어 bet이 500 미만이면 기본값 보정(없어도 되지만 안전차)
+    if (player.bet < 500) {
+      player.bet = 500;
+    }
+
     gameState = GameState.playerActive;
   }
 
   @override
   PlayingCard drawCard() {
-    final drwanCard = _cardService.drawCard();
-    player.hand.add(drwanCard);
+    final drawnCard = _cardService.drawCard();
+    player.hand.add(drawnCard);
     if (getScore(player) >= HIGHES_SCORE_VALUE) {
       endTurn();
     }
-    return drwanCard;
+    return drawnCard;
   }
 
   @override
   void endTurn() {
-    // Dealer turn
+    // 딜러는 최소 17점까지 자동으로 카드 뽑음
     int dealerScore = getScore(dealer);
     while (dealerScore < DEALER_MIN_SCORE) {
       dealer.hand.add(_cardService.drawCard());
       dealerScore = getScore(dealer);
     }
 
-    // Get burnt players
+    // 플레이어 / 딜러의 점수 상태 파악
     final playerScore = getScore(player);
     final bool burntDealer = (dealerScore > HIGHES_SCORE_VALUE);
     final bool burntPlayer = (playerScore > HIGHES_SCORE_VALUE);
 
-    // Find game result
+    // 승패 판정
     if (burntDealer && burntPlayer) {
       gameState = GameState.equal;
     } else if (dealerScore == playerScore) {
@@ -105,7 +118,7 @@ class GameServiceImpl extends GameService {
   @override
   String getWinner() {
     if (GameState.dealerWon == gameState) {
-      return "Dealer";
+      return "딜러";
     }
     if (GameState.playerWon == gameState) {
       return "You";

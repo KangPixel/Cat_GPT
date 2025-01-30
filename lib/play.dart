@@ -1,3 +1,5 @@
+// play.dart
+
 import 'package:flutter/material.dart';
 
 // 본 게임(메인) 상태들
@@ -10,7 +12,8 @@ import 'package:jump_rope_game/jump_rope_game.dart' as jump_rope;
 import 'package:flame/game.dart';
 
 // 다른 게임들
-import 'package:flutter_blackjack_pkg/view/bj_game.dart';
+import 'package:flutter_blackjack_pkg/view/bj_game.dart'; // 블랙잭 화면
+import 'package:flutter_blackjack_pkg/services/blackjack_manager.dart'; // 블랙잭 매니저
 import 'package:flutter_suika_game/ui/main_game.dart';
 import 'package:ski_master/game/game.dart';
 
@@ -153,19 +156,62 @@ class _PlayScreenState extends State<PlayScreen> {
                     ),
 
                     // Blackjack
+                    // Blackjack
                     _buildGameCard(
                       'Blackjack',
                       'assets/images/blackjack.png',
                       () {
-                        Navigator.push(
+                        if (!mounted) return;
+
+                        final currentWallet = 10000; // 시작 금액
+
+                        // 1) 블랙잭 세션 시작 - 시작 돈 기록
+                        blackjackManager.startNewSession(currentWallet);
+
+                        // 2) 블랙잭 게임 실행
+                        Navigator.push<int>(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const BlackJackGame(),
                           ),
-                        );
+                        ).then((finalWallet) {
+                          if (!mounted) return;
+
+                          if (finalWallet == null) {
+                            print('게임 취소됨');
+                            blackjackManager.endSession();
+                            return;
+                          }
+
+                          // 3) 돈 변화량 계산
+                          final moneyDiff =
+                              blackjackManager.getMoneyDifference(finalWallet);
+                          print(
+                              '시작 금액: ${blackjackManager.initialWallet}, 최종 금액: $finalWallet, 차액: $moneyDiff');
+                          // 4) 세션 종료는 여기서 한 번만
+                          blackjackManager.endSession();
+
+                          // 5) 결과 처리
+                          final fatigue =
+                              (moneyDiff < 0) ? 10 : 5; // 돈을 잃으면 피로도 10, 아니면 5
+                          final points = (moneyDiff > 0)
+                              ? (moneyDiff ~/ 1000)
+                              : 0; // 번 돈 1000당 1포인트
+
+                          // 6) MiniGameResult 생성 및 처리
+                          final result = MiniGameResult(
+                            gameName: 'Blackjack',
+                            totalScore: moneyDiff, // 돈 변화량
+                            fatigueIncrease: fatigue,
+                            pointsEarned: points,
+                            fatigueMessage: moneyDiff < 0 ? "(돈을 잃었어요.)" : null,
+                          );
+
+                          // 7) 게임 결과 처리 및 팝업 표시
+                          miniGameManager.processGameResult(context, result);
+                        });
                       },
                     ),
-
                     // Watermelon
                     _buildGameCard(
                       'Watermelon Game',
