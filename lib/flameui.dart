@@ -9,46 +9,32 @@ import 'touch.dart';
 
 class CatGame extends FlameGame with TapDetector {
   static CatGame? instance;
-  late SpriteComponent background;
   late SpriteComponent cat;
-  late TextComponent _countdown;
   late Sprite _normalSprite; // 일반 스프라이트 저장용
   late Sprite _openMouthSprite; // 입 벌린 스프라이트 저장용
+  late CalendarComponent _calendarComponent;
 
   @override
   Future<void> onLoad() async {
     instance = this;
-    background = SpriteComponent()
-      ..sprite = await loadSprite('background.png')
-      ..size = size;
-    add(background);
 
-    // 스프라이트 미리 로드
-    _normalSprite = await loadSprite('grayCat.png');
-    _openMouthSprite = await loadSprite('grayCat_open_mouth.png');
+    // 고양이 스프라이트 미리 로드
+    _normalSprite = await loadSprite('gray_cat.png');
+    _openMouthSprite = await loadSprite('gray_cat_open_mouth.png');
 
     cat = SpriteComponent()
       ..sprite = _normalSprite
-      ..size = Vector2(size.x * 0.4, size.y * 0.4)
+      ..size = Vector2(size.x * 0.45, size.y * 0.4)
       ..position = Vector2(
-        size.x / 2 - size.x * 0.2,
-        size.y / 2 - size.y * 0.1,
+        size.x / 2 - size.x * 0.23,
+        size.y / 2 - size.y * 0.18,
       );
     add(cat);
 
-    _countdown = TextComponent(
-      text: 'D-day: ${dayManager.currentDay}',
-      position: Vector2(size.x * 0.8, size.y / 5.5),
-      anchor: Anchor.topCenter,
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-    );
-    add(_countdown);
+    // 캘린더 컴포넌트 추가
+    _calendarComponent = CalendarComponent(dayManager.currentDay)
+      ..position = Vector2(size.x * 0.7, size.y / 19.0);
+    add(_calendarComponent);
   }
 
   @override
@@ -84,7 +70,69 @@ class CatGame extends FlameGame with TapDetector {
   }
 
   void updateDday() {
-    _countdown.text = 'D-day: ${dayManager.currentDay}';
+    _calendarComponent.updateDays(dayManager.currentDay); // 캘린더 업데이트
+  }
+}
+
+// D - day 표시 (달력 모양)
+class CalendarComponent extends PositionComponent {
+  int remainingDays;
+  late TextComponent daysTextComponent;
+
+  CalendarComponent(this.remainingDays);
+
+  @override
+  Future<void> onLoad() async {
+    size = Vector2(85, 60);
+
+    // 빨간색 상단 사각형
+    add(RectangleComponent(
+      position: Vector2(0, 0),
+      size: Vector2(size.x, size.y * 0.25),
+      paint: Paint()..color = Colors.red,
+    ));
+
+    // 흰색 하단 사각형
+    add(RectangleComponent(
+      position: Vector2(0, size.y * 0.25),
+      size: Vector2(size.x, size.y * 0.75),
+      paint: Paint()..color = Colors.white,
+    ));
+
+    // 일반 텍스트 부분
+    add(TextComponent(
+      text: 'D -',
+      position: Vector2(size.x / 4, size.y * 0.6),
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
+        ),
+      ),
+    ));
+
+    // 붉은 색으로 강조된 날짜 텍스트
+    daysTextComponent = TextComponent(
+      text: '$remainingDays',
+      position: Vector2(size.x / 2 + 15, size.y * 0.6),
+      anchor: Anchor.center,
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Colors.red,
+        ),
+      ),
+    );
+    add(daysTextComponent);
+  }
+
+  // 날짜 업데이트 메서드
+  void updateDays(int newDays) {
+    remainingDays = newDays;
+    daysTextComponent.text = '$remainingDays';
   }
 }
 
@@ -92,7 +140,7 @@ class FlameGameScreen extends StatelessWidget {
   final CatGame game = CatGame();
 
   FlameGameScreen({Key? key}) : super(key: key);
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
