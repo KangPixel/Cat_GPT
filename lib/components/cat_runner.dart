@@ -62,7 +62,7 @@ class CatRunner extends SpriteAnimationComponent with HasGameRef {
     }
 
     // 패널티 적용
-    if (random.nextDouble() < 0.1) { // 10% 확률로 패널티
+    if (random.nextDouble() < 0.1) { // 20% 확률로 패널티
       variation -= random.nextDouble() * 2.0;
     }
 

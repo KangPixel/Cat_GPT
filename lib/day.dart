@@ -1,8 +1,8 @@
-//날짜 관련 로직
 import 'package:flutter/material.dart';
 import 'status.dart';
 import 'touch.dart';
 import 'flameui.dart';
+import '../screens/character_selection_screen.dart'; // 캐릭터 선택 화면 추가
 
 class DayManager {
   int currentDay = 10;
@@ -12,9 +12,15 @@ class DayManager {
     debugPrint("Current day before check: $currentDay"); // 로그 추가
 
     if (currentDay < 1) {
-      debugPrint("Entering mini game, resetting day to 10"); // 로그 추가
+      debugPrint("Entering character selection, resetting day to 10"); // 로그 추가
       currentDay = 10;
-      Navigator.pushNamed(context, '/day10Game');
+
+      // 🔥 Named Route 대신 직접 화면 이동하도록 수정
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const CharacterSelectionScreen()),
+      );
+
       CatGame.instance?.updateDday(); // D-day UI 업데이트
     } else {
       _resetAll();

@@ -1,8 +1,10 @@
+import 'package:chat_cat_game/flameui.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import '../cat_racing_game.dart';
 import '../models/cat.dart';
 import '../screens/character_selection_screen.dart';
+
 
 class GameScreen extends StatefulWidget {
   final Cat selectedCat;
@@ -63,6 +65,8 @@ class _GameScreenState extends State<GameScreen> {
                       ),
                     ),
                   const SizedBox(height: 20), // 결과와 버튼 사이 여백
+                  
+                  // 🔥 다시 하기 버튼
                   ElevatedButton(
                     onPressed: () {
                       Navigator.pushReplacement(
@@ -73,6 +77,20 @@ class _GameScreenState extends State<GameScreen> {
                       );
                     },
                     child: const Text('다시 하기'),
+                  ),
+
+                  const SizedBox(height: 10), // 버튼 간격 추가
+
+                  // 🔥 메인으로 돌아가기 버튼 수정
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/', // initialRoute로 설정된 첫 화면'
+                        (route) => false, // 🔥 모든 이전 화면 제거 (중요!)
+                      );
+                    },
+                    child: const Text('메인으로'),
                   ),
                 ],
               ),
