@@ -15,4 +15,5 @@ abstract class GameService {
   int getScore(Player player);
   GameState getGameState();
   String getWinner();
+  void resetGameState();
 }

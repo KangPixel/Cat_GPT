@@ -6,6 +6,7 @@ import 'status.dart';
 import 'chat_log.dart';
 
 const backendUrl = 'http://34.22.100.160:8000/chat';
+//const backendUrl = 'https://2b18-112-187-152-186.ngrok-free.app/chat';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({Key? key}) : super(key: key);
