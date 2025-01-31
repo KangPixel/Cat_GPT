@@ -1,4 +1,4 @@
-//flameui.dart flame으로 구현한 ui
+// flameui.dart (flame으로 구현한 ui)
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';
@@ -10,8 +10,10 @@ import 'touch.dart';
 class CatGame extends FlameGame with TapDetector {
   static CatGame? instance;
   late SpriteComponent cat;
-  late Sprite _normalSprite; // 일반 스프라이트 저장용
-  late Sprite _openMouthSprite; // 입 벌린 스프라이트 저장용
+  // 스프라이트를 정의
+  late final Sprite _openMouthSprite;
+  late final Sprite _normalSprite;
+
   late CalendarComponent _calendarComponent;
 
   @override
@@ -22,8 +24,12 @@ class CatGame extends FlameGame with TapDetector {
     _normalSprite = await loadSprite('gray_cat.png');
     _openMouthSprite = await loadSprite('gray_cat_open_mouth.png');
 
+    // ValueNotifier에 초기 스프라이트 설정
+    catStatus.catSprite.value = _normalSprite;
+
+    // 고양이 컴포넌트
     cat = SpriteComponent()
-      ..sprite = _normalSprite
+      ..sprite = catStatus.catSprite.value
       ..size = Vector2(size.x * 0.45, size.y * 0.4)
       ..position = Vector2(
         size.x / 2 - size.x * 0.23,
@@ -35,7 +41,16 @@ class CatGame extends FlameGame with TapDetector {
     _calendarComponent = CalendarComponent(dayManager.currentDay)
       ..position = Vector2(size.x * 0.7, size.y / 19.0);
     add(_calendarComponent);
+
+    // ValueNotifier 리스너 추가 (스프라이트 변경 감지)
+    catStatus.catSprite.addListener(() {
+      cat.sprite = catStatus.catSprite.value; // 상태 변경 시 자동 업데이트
+    });
   }
+
+  // ✅ 외부에서 접근할 수 있도록 Getter 추가
+  Sprite get normalSprite => _normalSprite;
+  Sprite get openMouthSprite => _openMouthSprite;
 
   @override
   bool onTapUp(TapUpInfo info) {
@@ -57,15 +72,15 @@ class CatGame extends FlameGame with TapDetector {
   }
 
   Future<void> _changeCatSpriteTemporarily() async {
-    cat.sprite = _openMouthSprite;
+    catStatus.catSprite.value = _openMouthSprite; // ValueNotifier로 스프라이트 변경
     await Future.delayed(const Duration(milliseconds: 500));
-    cat.sprite = _normalSprite; // 원래 스프라이트로 반드시 복구
+    catStatus.catSprite.value = _normalSprite; // 원래 상태 복구
   }
 
   // 잠자기 기능에서 호출할 리셋 함수
   void resetGame() {
     touchManager.resetTouchCount();
-    cat.sprite = _normalSprite; // 스프라이트도 초기상태로 리셋
+    catStatus.catSprite.value = _normalSprite; // 스프라이트 초기화
     updateDday();
   }
 
@@ -89,19 +104,21 @@ class CalendarComponent extends PositionComponent {
     add(RectangleComponent(
       position: Vector2(0, 0),
       size: Vector2(size.x, size.y * 0.25),
-      paint: Paint()..color = Colors.red,
+      paint: Paint()
+        ..color = Colors.red,
     ));
 
     // 흰색 하단 사각형
     add(RectangleComponent(
       position: Vector2(0, size.y * 0.25),
       size: Vector2(size.x, size.y * 0.75),
-      paint: Paint()..color = Colors.white,
+      paint: Paint()
+        ..color = Colors.white,
     ));
 
     // 일반 텍스트 부분
     add(TextComponent(
-      text: 'D -',
+      text: ' D -',
       position: Vector2(size.x / 4, size.y * 0.6),
       anchor: Anchor.center,
       textRenderer: TextPaint(

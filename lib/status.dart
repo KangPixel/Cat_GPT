@@ -1,11 +1,13 @@
 //status.dart 친밀도, 에너지, 피로도 관리
 import 'package:flutter/material.dart';
+import 'package:flame/components.dart';
 
 class CatStatus {
   ValueNotifier<int> intimacy = ValueNotifier<int>(1); // 초기값 1
-
-  ValueNotifier<int> energy = ValueNotifier<int>(50); // 초기값 40
+  ValueNotifier<int> energy = ValueNotifier<int>(40); // 초기값 40
   ValueNotifier<int> fatigue = ValueNotifier<int>(0);
+
+  ValueNotifier<Sprite?> catSprite = ValueNotifier<Sprite?>(null);
 
   void updateStatus({
     int intimacyDelta = 0,
