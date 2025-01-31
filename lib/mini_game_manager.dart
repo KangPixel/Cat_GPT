@@ -27,7 +27,9 @@ class MiniGameManager {
   Future<void> processGameResult(
       BuildContext context, MiniGameResult result) async {
     // 스탯 업데이트
-    catStatus.updateStatus(fatigueDelta: result.fatigueIncrease);
+    catStatus.updateStatus(
+      fatigueDelta: result.fatigueIncrease,
+      energyDelta: -result.fatigueIncrease,); // 피로도만큼 에너지 감소
     day10Stats.updateStats(pointsDelta: result.pointsEarned);
 
     // 결과 팝업 표시
