@@ -23,8 +23,14 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/background.png
-    - assets/images/grayCat.png
-    - assets/images/grayCat_open_mouth.png
-    - assets/
+
+    - assets/images/gray_cat.png
+    - assets/images/gray_cat_open_mouth.png
+    - assets/images/suika_game/
+    - assets/images/food.png
+    - assets/images/sleep.png
+    - assets/images/play.png
+    - assets/images/speech_bubble.png
+    - assets/images/pixel_cat.png
+    - assets/images/fish.png
     - assets/images/
