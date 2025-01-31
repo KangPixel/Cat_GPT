@@ -1,3 +1,4 @@
+//day10_stats  경주게임에 사용되는 미니게임을 통해 올릴 수 있는 스탯
 import 'package:flutter/material.dart';
 
 class Day10Stats {

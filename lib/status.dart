@@ -1,4 +1,4 @@
-//친밀도, 에너지, 피로도 관리
+//status.dart 친밀도, 에너지, 피로도 관리
 import 'package:flutter/material.dart';
 
 class CatStatus {
