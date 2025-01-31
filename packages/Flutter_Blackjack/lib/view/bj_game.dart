@@ -1,5 +1,4 @@
 //bj_game.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_blackjack_pkg/services/game_service.dart';
 import 'package:flutter_blackjack_pkg/services/game_service_impl.dart';
@@ -8,36 +7,45 @@ import 'package:playing_cards/playing_cards.dart';
 import 'package:flutter_blackjack_pkg/services/blackjack_manager.dart';
 
 class BlackJackGame extends StatefulWidget {
-  const BlackJackGame({Key? key}) : super(key: key);
-
+  final GameService gameService;
+  const BlackJackGame({Key? key, required this.gameService}) : super(key: key);
   @override
   State<BlackJackGame> createState() => _BlackJackGameState();
 }
 
 class _BlackJackGameState extends State<BlackJackGame> {
-  final GameService _gameService = GameServiceImpl();
   final List<int> betOptions = [500, 1000, 2000, 5000, 10000];
   bool _isSettling = false;
   bool _hasGameStarted = false;
+
   @override
   void initState() {
     super.initState();
-    // initialWallet getter를 통해 접근
-    _gameService.getPlayer().wallet = blackjackManager.initialWallet;
-    print('BlackJackGame initState - 초기 금액: ${blackjackManager.initialWallet}');
+    // 저장된 상태가 없을 때만 초기화
+    if (blackjackManager.getSavedState() == null) {
+      widget.gameService.getPlayer().wallet = blackjackManager.initialWallet;
+      widget.gameService.getPlayer().bet = betOptions[0];
+    }
+    // 이전 게임이 진행 중이었다면 그 상태 복원
+    final savedState = blackjackManager.getSavedState();
+    if (savedState != null &&
+        savedState['gameState'] == GameState.playerActive) {
+      _hasGameStarted = true;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final gameState = _gameService.getGameState();
+    final gameState = widget.gameService.getGameState();
     final bool isPlayerActive = (gameState == GameState.playerActive);
-    final int wallet = _gameService.getPlayer().wallet;
+    final int wallet = widget.gameService.getPlayer().wallet;
     final bool hasPlayedAtLeastOneRound =
-        _gameService.getPlayer().won > 0 || _gameService.getPlayer().lose > 0;
+        widget.gameService.getPlayer().won > 0 ||
+            widget.gameService.getPlayer().lose > 0;
 
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pop(context);
+        Navigator.pop(context); // 단순히 화면만 닫기
         return false;
       },
       child: Scaffold(
@@ -46,24 +54,20 @@ class _BlackJackGameState extends State<BlackJackGame> {
           title: const Text('Blackjack'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              // 그냥 뒤로 나가기만 수행
-              Navigator.pop(context);
-            },
+            onPressed: () => Navigator.pop(context), // 단순히 화면만 닫기
           ),
         ),
         body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
-
             // 딜러 카드
             SizedBox(
               height: 180,
-              width: _gameService.getDealer().hand.length * 90,
+              width: widget.gameService.getDealer().hand.length * 90,
               child: FlatCardFan(
                 children: [
-                  for (var card in _gameService.getDealer().hand)
+                  for (var card in widget.gameService.getDealer().hand)
                     CardAnimatedWidget(card, isPlayerActive, 3.0),
                 ],
               ),
@@ -78,7 +82,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
                 GestureDetector(
                   onTap: () {
                     if (isPlayerActive) {
-                      _gameService.drawCard();
+                      widget.gameService.drawCard();
                       setState(() {});
                     }
                   },
@@ -102,36 +106,37 @@ class _BlackJackGameState extends State<BlackJackGame> {
                     ElevatedButton(
                       onPressed: () {
                         if (isPlayerActive) {
-                          _gameService.endTurn();
+                          _onGameEnd();
                         } else {
-                          _startNewGame();
+                          setState(() {
+                            _startNewGame();
+                          });
                         }
-                        setState(() {});
                       },
                       child: Text(isPlayerActive ? "Finish" : "New Game"),
                     ),
                     const SizedBox(height: 10),
                     if (!isPlayerActive && _hasGameStarted) ...[
                       Text(
-                        "승자: ${_gameService.getWinner()}",
+                        "승자: ${widget.gameService.getWinner()}",
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 19,
                           fontWeight: FontWeight.w600,
                           fontFamily: 'cursive',
                         ),
                       ),
                       Text(
-                        "딜러: ${_gameService.getScore(_gameService.getDealer())}",
+                        "딜러: ${widget.gameService.getScore(widget.gameService.getDealer())}",
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 19,
                           fontWeight: FontWeight.w600,
                           fontFamily: 'cursive',
                         ),
                       ),
                       Text(
-                        "You: ${_gameService.getScore(_gameService.getPlayer())}",
+                        "You: ${widget.gameService.getScore(widget.gameService.getPlayer())}",
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 19,
                           fontWeight: FontWeight.w600,
                           fontFamily: 'cursive',
                         ),
@@ -144,10 +149,9 @@ class _BlackJackGameState extends State<BlackJackGame> {
                 ElevatedButton(
                   style:
                       ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                  onPressed: (!_hasGameStarted ||
-                          isPlayerActive ||
-                          !hasPlayedAtLeastOneRound ||
-                          _isSettling)
+                  onPressed: (isPlayerActive ||
+                          _isSettling ||
+                          !hasPlayedAtLeastOneRound)
                       ? null
                       : _onPressSettlement,
                   child: const Text("정산"),
@@ -162,8 +166,8 @@ class _BlackJackGameState extends State<BlackJackGame> {
               children: [
                 Column(
                   children: [
-                    Text("Won: ${_gameService.getPlayer().won}"),
-                    Text("Lost: ${_gameService.getPlayer().lose}"),
+                    Text("Won: ${widget.gameService.getPlayer().won}"),
+                    Text("Lost: ${widget.gameService.getPlayer().lose}"),
                   ],
                 ),
                 const SizedBox(width: 30),
@@ -183,23 +187,25 @@ class _BlackJackGameState extends State<BlackJackGame> {
                         runSpacing: 8.0,
                         children: betOptions.map((option) {
                           final bool isSelected =
-                              (option == _gameService.getPlayer().bet);
+                              (option == widget.gameService.getPlayer().bet);
                           final bool canAfford = wallet >= option;
-                          final bool isDisabled = isPlayerActive || !canAfford;
+                          final bool isPlayingCurrentRound =
+                              isPlayerActive; // 한 판이 진행중인지 여부
 
                           return Tooltip(
                             message: !canAfford
                                 ? '잔액 부족'
-                                : isPlayerActive
-                                    ? '게임 진행 중'
+                                : isPlayingCurrentRound
+                                    ? '게임 진행 중에는 베팅을 변경할 수 없습니다'
                                     : '베팅 가능',
                             child: ElevatedButton(
-                              onPressed: isDisabled ||
-                                      (_hasGameStarted && !isPlayerActive)
+                              onPressed: (!canAfford ||
+                                      isPlayingCurrentRound) // 현재 판이 진행중이면 베팅 변경 불가
                                   ? null
                                   : () {
                                       setState(() {
-                                        _gameService.getPlayer().bet = option;
+                                        widget.gameService.getPlayer().bet =
+                                            option;
                                       });
                                     },
                               style: ElevatedButton.styleFrom(
@@ -236,10 +242,10 @@ class _BlackJackGameState extends State<BlackJackGame> {
             // 플레이어 카드
             SizedBox(
               height: 180,
-              width: _gameService.getPlayer().hand.length * 90,
+              width: widget.gameService.getPlayer().hand.length * 90,
               child: FlatCardFan(
                 children: [
-                  for (var card in _gameService.getPlayer().hand)
+                  for (var card in widget.gameService.getPlayer().hand)
                     CardAnimatedWidget(card, false, 3.0),
                 ],
               ),
@@ -267,34 +273,41 @@ class _BlackJackGameState extends State<BlackJackGame> {
   }
 
   void _startNewGame() {
-    final int currentBet = _gameService.getPlayer().bet;
-    _gameService.startNewGame();
-    _gameService.getPlayer().bet = currentBet;
-    setState(() {
-      _hasGameStarted = true;
-    });
+    widget.gameService.startNewGame();
+    _hasGameStarted = true;
+    // 새 게임 시작할 때의 상태를 저장
+    blackjackManager.saveGameState(
+        player: widget.gameService.getPlayer(),
+        dealer: widget.gameService.getDealer(),
+        gameState: widget.gameService.getGameState());
+  }
+
+  void _onGameEnd() {
+    widget.gameService.endTurn();
+    setState(() {});
   }
 
   void _onPressSettlement() {
     if (_isSettling || !_hasGameStarted) return;
-
     setState(() {
       _isSettling = true;
     });
+    final currentWallet = widget.gameService.getPlayer().wallet;
 
-    final currentWallet = _gameService.getPlayer().wallet;
-    print('정산 시점 - 현재 금액: $currentWallet');
+    // 게임 상태 초기화
+    widget.gameService.resetGameState();
+    // blackjackManager의 저장된 상태도 초기화
+    blackjackManager.clearSavedState();
 
     if (mounted) {
+      // 정산 완료 표시와 함께 wallet 전달
       Navigator.pop(context, currentWallet);
     }
   }
 
   @override
   void dispose() {
-    if (!_isSettling && _hasGameStarted) {
-      blackjackManager.endSession();
-    }
+    // 세션 종료 로직 제거
     super.dispose();
   }
 }

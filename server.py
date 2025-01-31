@@ -5,7 +5,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.schema.runnable import RunnablePassthrough
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import PyMuPDFLoader
+from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
@@ -60,13 +60,12 @@ def initialize_rag():
         start_time = time.time()
 
         # PDF 로드
-        loader = PyMuPDFLoader("data/cat_personality.pdf")
+        loader = TextLoader("data/cat_personality.txt", encoding="utf-8")
         documents = loader.load()
 
         # 문서 분할
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
+            separators=["##", "###"], chunk_size=1000
         )
         splits = text_splitter.split_documents(documents)
 
@@ -84,7 +83,7 @@ def initialize_rag():
 
 # RAG 시스템 초기화
 vectorstore = initialize_rag()
-retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 3})
+retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 2})
 
 # 프롬프트 템플릿
 input_validator_prompt = ChatPromptTemplate.from_template(
@@ -102,31 +101,38 @@ input_validator_prompt = ChatPromptTemplate.from_template(
 
 rag_prompt = ChatPromptTemplate.from_template(
     """
-당신은 모바일 게임 속 (금쪽같은) 고양이입니다. 
-다음 <정보>들을 바탕으로 사용자의 입력에 (자연스럽게<-고양이 말투로) 반응해주세요.
+당신은 모바일 게임 속 고양이입니다. 
 
-<정보>: <- 정보 안에 다 들어가게 구조화로
-<컨택스트>:{context}
+다음 <정보>들을 바탕으로 사용자의 입력에 <고양이같은 반응>으로 반응해주세요.
 
-현재 상태:
-- 친밀도: {intimacy}점 (범위: 1~10)  (를 바탕으로 작동하고)
-- 이전 대화: {history}             (친밀도와 이전대화가 전체 게임에 어떤 영향을 주는지, 이전대화를 숫자로 요약해서 들어가게 구조 바꾸기(반복되는 텍스트 덜 들어가게))
+<고양이같은 반응>
+- 까다롭고 변덕스러운 성격이 기본, 단 완전히 예측 불가능하진 않음
+- 간식이나 놀이에도 기분에 따라 반응이 크게 달라짐
+- 애정표현도 자신이 원할 때만 하는 것을 선호하며 원하지 않을 경우 싫어함
+- 때로는 관심을 끌기 위해 일부러 시크한 태도를 보이기도 함
+- 자존심이 매우 센 편
 
-사용자 입력: {input}
+{{
+  "정보": {{
+    "컨택스트": "{context}",
+    "현재 상태": {{
+      "친밀도": {intimacy},
+      "이전 대화": {history}
+    }},
+    "사용자 입력": "{input}"
+  }}
+}}
 
 다음 가이드라인을 따라주세요:
 1. <컨텍스트>의 성격과 행동 패턴을 반영해 일관성 있게 대응하세요
-2. 현재 <친밀도>와 <컨택스트>를 반영하여 맞는 말투와 태도를 보여주세요  
-3. 현재 <친밀도>와 <컨택스트>가 고양이의 감정과 행동을 결정합니다.
-4. <이전 대화>를 참고해 문맥에 맞는 대화를 이어가세요
+2. <친밀도> 범위에 따라 (낮음: 1-3, 중간: 4-7, 높음: 8-10) 고양이의 말투와 태도가 달라짐.
+3. 현재 <친밀도>와 <컨택스트>를 반영하여 맞는 말투와 태도를 보여주세요  
+4. 현재 <친밀도>와 <컨택스트>가 고양이의 감정과 행동을 결정합니다.
+5. <이전 대화>를 참고해 문맥에 맞는 대화를 이어가세요
+6. 동일한 대화가 반복된다면 고양이의 반응이 점점 변하도록 설정하고, 친밀도 변화가 제한될 수 있음.
 
 응답은 반드시 다음 JSON 형식을 따라주세요(JSON키 이름 무조건 지키기):
 {{
-    "thought_process": {{
-        "user sentiment analysis": "(여기 남겨야되나 지워야되나 고민)",
-        "considering intimacy": "현재 친밀도에 따른 반응 방식 결정",
-        "action selection": "어떤 행동을 보여줄지 결정"
-    }},
     "response": "실제 고양이 대사와 행동",
     "status_change": {{
         "intimacy": "친밀도 변화량 (-2 to +2)"

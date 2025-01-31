@@ -1,9 +1,10 @@
 //game_service_impl.dart
-
 import 'package:flutter_blackjack_pkg/models/player_model.dart';
 import 'package:flutter_blackjack_pkg/services/card_service_impl.dart';
 import 'package:flutter_blackjack_pkg/services/game_service.dart';
 import 'package:playing_cards/playing_cards.dart';
+import 'package:flutter_blackjack_pkg/services/blackjack_manager.dart'
+    show BlackjackGameManager, blackjackManager;
 
 import 'card_service.dart';
 
@@ -18,22 +19,33 @@ class GameServiceImpl extends GameService {
   final CardServiceImpl _cardService = CardServiceImpl();
 
   GameServiceImpl() {
-    // 초기 생성 시점에 새 덱 + 2장씩 분배는 안 하고,
-    // 아래 startNewGame()에서 진행하도록
     dealer = Player([]);
     player = Player([]);
+    _restoreGameState();
+  }
+
+  void _saveGameState() {
+    blackjackManager.saveGameState(
+        player: player, dealer: dealer, gameState: gameState);
+  }
+
+  void _restoreGameState() {
+    final savedState = blackjackManager.getSavedState();
+    if (savedState != null) {
+      player = savedState['player'] as Player;
+      dealer = savedState['dealer'] as Player;
+      gameState = savedState['gameState'] as GameState;
+    }
   }
 
   @override
   void startNewGame() {
-    // 1. 새 덱 생성
-    _cardService.new52Deck();
+    _saveGameState();
 
-    // 2. 플레이어 / 딜러에게 카드 2장씩 배분
+    _cardService.new52Deck();
     player.hand = _cardService.drawCards(2);
     dealer.hand = _cardService.drawCards(2);
 
-    // 플레이어 bet이 500 미만이면 기본값 보정(없어도 되지만 안전차)
     if (player.bet < 500) {
       player.bet = 500;
     }
@@ -48,24 +60,22 @@ class GameServiceImpl extends GameService {
     if (getScore(player) >= HIGHES_SCORE_VALUE) {
       endTurn();
     }
+    _saveGameState();
     return drawnCard;
   }
 
   @override
   void endTurn() {
-    // 딜러는 최소 17점까지 자동으로 카드 뽑음
     int dealerScore = getScore(dealer);
     while (dealerScore < DEALER_MIN_SCORE) {
       dealer.hand.add(_cardService.drawCard());
       dealerScore = getScore(dealer);
     }
 
-    // 플레이어 / 딜러의 점수 상태 파악
     final playerScore = getScore(player);
     final bool burntDealer = (dealerScore > HIGHES_SCORE_VALUE);
     final bool burntPlayer = (playerScore > HIGHES_SCORE_VALUE);
 
-    // 승패 판정
     if (burntDealer && burntPlayer) {
       gameState = GameState.equal;
     } else if (dealerScore == playerScore) {
@@ -79,6 +89,8 @@ class GameServiceImpl extends GameService {
     } else if (dealerScore > playerScore) {
       dealerWon();
     }
+
+    _saveGameState();
   }
 
   void playerWon() {
@@ -86,6 +98,7 @@ class GameServiceImpl extends GameService {
     player.won += 1;
     dealer.lose += 1;
     player.wonBet();
+    _saveGameState();
   }
 
   void dealerWon() {
@@ -93,6 +106,14 @@ class GameServiceImpl extends GameService {
     dealer.won += 1;
     player.lose += 1;
     player.lostBet();
+    _saveGameState();
+  }
+
+  void resetGameState() {
+    player.hand = [];
+    dealer.hand = [];
+    gameState = GameState.equal;
+    _saveGameState();
   }
 
   @override
@@ -125,51 +146,45 @@ class GameServiceImpl extends GameService {
     }
     return "Nobody";
   }
-}
 
-/// Map blackjack rules for card values to the PlayingCard enum
-int mapCardValueRules(List<PlayingCard> cards) {
-  List<PlayingCard> standardCards = cards
-      .where((card) => (0 <= card.value.index && card.value.index <= 11))
-      .toList();
+  int mapCardValueRules(List<PlayingCard> cards) {
+    List<PlayingCard> standardCards = cards
+        .where((card) => (0 <= card.value.index && card.value.index <= 11))
+        .toList();
 
-  final sumStandardCards = getSumOfStandardCards(standardCards);
+    final sumStandardCards = _getSumOfStandardCards(standardCards);
 
-  int acesAmount = cards.length - standardCards.length;
-  if (acesAmount == 0) {
-    return sumStandardCards;
+    int acesAmount = cards.length - standardCards.length;
+    if (acesAmount == 0) {
+      return sumStandardCards;
+    }
+
+    final pointsLeft = HIGHES_SCORE_VALUE - sumStandardCards;
+    final oneAceIsEleven = 11 + (acesAmount - 1);
+
+    if (pointsLeft >= oneAceIsEleven) {
+      return sumStandardCards + oneAceIsEleven;
+    }
+
+    return sumStandardCards + acesAmount;
   }
 
-  // Special case: Ace could be value 1 or 11
-  final pointsLeft = HIGHES_SCORE_VALUE - sumStandardCards;
-  final oneAceIsEleven = 11 + (acesAmount - 1);
-
-  // One Ace with value 11 fits
-  if (pointsLeft >= oneAceIsEleven) {
-    return sumStandardCards + oneAceIsEleven;
+  int _getSumOfStandardCards(List<PlayingCard> standardCards) {
+    return standardCards.fold<int>(
+        0, (sum, card) => sum + _mapStandardCardValue(card.value.index));
   }
 
-  return sumStandardCards + acesAmount;
-}
+  int _mapStandardCardValue(int cardEnumIdex) {
+    const GAP_BETWEEN_INDEX_AND_VALUE = 2;
 
-int getSumOfStandardCards(List<PlayingCard> standardCards) {
-  return standardCards.fold<int>(
-      0, (sum, card) => sum + mapStandardCardValue(card.value.index));
-}
+    if (0 <= cardEnumIdex && cardEnumIdex <= 8) {
+      return cardEnumIdex + GAP_BETWEEN_INDEX_AND_VALUE;
+    }
 
-int mapStandardCardValue(int cardEnumIdex) {
-  // ignore: constant_identifier_names
-  const GAP_BETWEEN_INDEX_AND_VALUE = 2;
+    if (9 <= cardEnumIdex && cardEnumIdex <= 11) {
+      return 10;
+    }
 
-  // Card value 2-10 -> index between 0 and 8
-  if (0 <= cardEnumIdex && cardEnumIdex <= 8) {
-    return cardEnumIdex + GAP_BETWEEN_INDEX_AND_VALUE;
+    return 0;
   }
-
-  // Card is jack, queen, king -> index between90 and 11
-  if (9 <= cardEnumIdex && cardEnumIdex <= 11) {
-    return 10;
-  }
-
-  return 0;
 }

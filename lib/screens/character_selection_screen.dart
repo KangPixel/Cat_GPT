@@ -6,30 +6,29 @@ import '../screens/game_screen.dart';
 final List<Cat> cats = [
   Cat(
     name: 'Player',
-    imagePath: 'assets/cat1.png',
+    imagePath: 'assets/images/cat1.png',
     description: '빠르고 날렵한 고양이',
     color: 'one', // 지정
   ),
   Cat(
     name: '고양이 2',
-    imagePath: 'assets/cat2.png',
+    imagePath: 'assets/images/cat2.png',
     description: '지구력이 뛰어난 고양이',
     color: 'two', // 지정
   ),
   Cat(
     name: '고양이 3',
-    imagePath: 'assets/cat3.png',
+    imagePath: 'assets/images/cat3.png',
     description: '힘이 좋은 고양이',
     color: 'three', // 지정
   ),
   Cat(
     name: '고양이 4',
-    imagePath: 'assets/cat4.png',
+    imagePath: 'assets/images/cat4.png',
     description: '똑똑한 고양이',
     color: 'four', // 지정
   ),
 ];
-
 
 class CharacterSelectionScreen extends StatelessWidget {
   const CharacterSelectionScreen({Key? key}) : super(key: key);
