@@ -10,8 +10,8 @@ import 'package:jump_rope_game/jump_rope_game.dart' as jump_rope;
 import 'package:flame/game.dart';
 
 // 다른 게임들
-import 'package:flutter_blackjack_pkg/view/bj_game.dart';
-import 'package:flutter_blackjack_pkg/services/blackjack_manager.dart';
+import 'package:flutter_blackjack_pkg/view/bj_game.dart'; // 블랙잭 화면
+import 'package:flutter_blackjack_pkg/services/blackjack_manager.dart'; // 블랙잭 매니저
 import 'package:flutter_suika_game/ui/main_game.dart';
 import 'package:ski_master/game/game.dart';
 
@@ -74,7 +74,7 @@ class _PlayScreenState extends State<PlayScreen> {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   children: [
-                    _buildGameCard('Jump Rope', 'assets/jump_rope.png', () {
+                    _buildGameCard('Jump Rope', '/jump_rope.png', () {
                       jump_rope.jumpRopeManager.startNewSession();
                       Navigator.push<MiniGameResult>(
                         context,
@@ -91,7 +91,7 @@ class _PlayScreenState extends State<PlayScreen> {
                         }
                       });
                     }),
-                    _buildGameCard('Ski', 'assets/ski.png', () {
+                    _buildGameCard('Ski', '/ski.png', () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -103,7 +103,7 @@ class _PlayScreenState extends State<PlayScreen> {
                         ),
                       );
                     }),
-                    _buildGameCard('Blackjack', 'assets/blackjack.png', () {
+                    _buildGameCard('Blackjack', '/blackjack.png', () {
                       final currentWallet = 10000;
                       blackjackManager.startNewSession(currentWallet);
                       Navigator.push<int>(
@@ -126,7 +126,7 @@ class _PlayScreenState extends State<PlayScreen> {
                         blackjackManager.endSession();
                       });
                     }),
-                    _buildGameCard('Watermelon Game', 'assets/watermelon.png', () {
+                    _buildGameCard('Watermelon Game', '/watermelon.png', () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
