@@ -27,6 +27,13 @@ class Day10Stats {
     burst.value = 0;
     stamina.value = 0;
     points.value = 0;
+    print("Stats Reset: Speed=${speed.value}, Burst=${burst.value}, Stamina=${stamina.value}, Points=${points.value}");
+    
+  }
+  // 4가지 스탯의 합을 1~10 사이 값으로 변환
+  double get normalizedScore {
+    int total = speed.value + burst.value + stamina.value + points.value;
+    return (total / 400.0 * 5).clamp(1.0, 5.0); //400은 최대 합합
   }
 }
 
