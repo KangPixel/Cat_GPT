@@ -5,15 +5,16 @@ import 'package:flutter/material.dart';
 // 본 게임(메인) 상태들
 import 'status.dart';
 import 'day10_stats.dart';
-import 'mini_game_manager.dart'; // MiniGameResult, miniGameManager.processGameResult 등
+import 'mini_game_manager.dart';
 
 // jump_rope_game 패키지
 import 'package:jump_rope_game/jump_rope_game.dart' as jump_rope;
 import 'package:flame/game.dart';
 
 // 다른 게임들
-import 'package:flutter_blackjack_pkg/view/bj_game.dart'; // 블랙잭 화면
-import 'package:flutter_blackjack_pkg/services/blackjack_manager.dart'; // 블랙잭 매니저
+import 'package:flutter_blackjack_pkg/view/bj_game.dart';
+import 'package:flutter_blackjack_pkg/services/blackjack_manager.dart';
+import 'package:flutter_blackjack_pkg/services/game_service_impl.dart';
 import 'package:flutter_suika_game/ui/main_game.dart';
 import 'package:ski_master/game/game.dart';
 
@@ -25,10 +26,8 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
-  @override
-  void initState() {
-    super.initState();
-  }
+  // GameService 인스턴스를 클래스 레벨에서 static으로 선언
+  static GameServiceImpl? _gameService;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +50,6 @@ class _PlayScreenState extends State<PlayScreen> {
           appBar: AppBar(
             title: const Text('Play'),
             actions: [
-              // Points 표시
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -111,15 +109,12 @@ class _PlayScreenState extends State<PlayScreen> {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   children: [
-                    // Jump Rope 카드
+                    // Jump Rope 카드 복원
                     _buildGameCard(
                       'Jump Rope',
                       'assets/images/jump_rope.png',
                       () {
-                        // 여기서 ★한 번만★ 새 세션 시작
                         jump_rope.jumpRopeManager.startNewSession();
-
-                        // 미니게임 화면 띄우고, 종료 후 결과 받음
                         Navigator.push<MiniGameResult>(
                           context,
                           MaterialPageRoute(
@@ -137,7 +132,7 @@ class _PlayScreenState extends State<PlayScreen> {
                       },
                     ),
 
-                    // 예시: Ski
+                    // Ski
                     _buildGameCard(
                       'Ski',
                       'assets/images/ski.png',
@@ -156,62 +151,55 @@ class _PlayScreenState extends State<PlayScreen> {
                     ),
 
                     // Blackjack
-                    // Blackjack
                     _buildGameCard(
                       'Blackjack',
                       'assets/images/blackjack.png',
                       () {
                         if (!mounted) return;
 
-                        final currentWallet = 10000; // 시작 금액
+                        // 새로운 세션 시작이 필요한 경우에만 시작
+                        if (!blackjackManager.sessionStarted) {
+                          blackjackManager.startNewSession(10000);
+                          _gameService = GameServiceImpl(); // 새 세션 시작할 때만 새로 생성
+                        }
 
-                        // 1) 블랙잭 세션 시작 - 시작 돈 기록
-                        blackjackManager.startNewSession(currentWallet);
-
-                        // 2) 블랙잭 게임 실행
                         Navigator.push<int>(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const BlackJackGame(),
+                            builder: (context) =>
+                                BlackJackGame(gameService: _gameService!),
                           ),
                         ).then((finalWallet) {
                           if (!mounted) return;
 
                           if (finalWallet == null) {
-                            print('게임 취소됨');
-                            blackjackManager.endSession();
-                            return;
+                            return; // 세션을 유지합니다
                           }
 
-                          // 3) 돈 변화량 계산
+                          // 게임 결과 처리
                           final moneyDiff =
                               blackjackManager.getMoneyDifference(finalWallet);
-                          print(
-                              '시작 금액: ${blackjackManager.initialWallet}, 최종 금액: $finalWallet, 차액: $moneyDiff');
-                          // 4) 세션 종료는 여기서 한 번만
-                          blackjackManager.endSession();
 
-                          // 5) 결과 처리
-                          final fatigue =
-                              (moneyDiff < 0) ? 10 : 5; // 돈을 잃으면 피로도 10, 아니면 5
-                          final points = (moneyDiff > 0)
-                              ? (moneyDiff ~/ 1000)
-                              : 0; // 번 돈 1000당 1포인트
+                          // 세션 종료는 정산 버튼을 눌렀을 때만 수행
+                          if (moneyDiff != 0) {
+                            _gameService = null; // 정산 후에는 서비스 초기화
+                            blackjackManager.endSession();
+                            final result = MiniGameResult(
+                              gameName: 'Blackjack',
+                              totalScore: moneyDiff,
+                              fatigueIncrease: (moneyDiff < 0) ? 10 : 5,
+                              pointsEarned:
+                                  (moneyDiff > 0) ? (moneyDiff ~/ 1000) : 0,
+                              fatigueMessage:
+                                  moneyDiff < 0 ? "(돈을 잃었어요.)" : null,
+                            );
 
-                          // 6) MiniGameResult 생성 및 처리
-                          final result = MiniGameResult(
-                            gameName: 'Blackjack',
-                            totalScore: moneyDiff, // 돈 변화량
-                            fatigueIncrease: fatigue,
-                            pointsEarned: points,
-                            fatigueMessage: moneyDiff < 0 ? "(돈을 잃었어요.)" : null,
-                          );
-
-                          // 7) 게임 결과 처리 및 팝업 표시
-                          miniGameManager.processGameResult(context, result);
+                            miniGameManager.processGameResult(context, result);
+                          }
                         });
                       },
                     ),
+
                     // Watermelon
                     _buildGameCard(
                       'Watermelon Game',
@@ -242,28 +230,37 @@ class _PlayScreenState extends State<PlayScreen> {
   Widget _buildGameCard(String title, String imagePath, VoidCallback onTap) {
     return Card(
       elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              imagePath,
-              height: 80,
-              width: 80,
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.games, size: 80);
-              },
-            ),
-            const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontSize: 16)),
-          ],
+        child: SizedBox(
+          width: 150,
+          height: 160,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(height: 8), //상단 여백 추가
+              Expanded(
+                // 이미지가 카드 크기에 맞게 확장됨
+                child: Image.asset(
+                  imagePath,
+                  height: double.infinity, // 높이를 카드 크기에 맞춤춤
+                  width: double.infinity, // 너비를 카드 크기에 맞춤춤
+                  fit: BoxFit.contain, //이미지가 카드 안에서 크기 맞춰짐짐
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.games, size: 100);
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(title, style: const TextStyle(fontSize: 16)),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  /// 실제 미니게임 화면 + 뒤로가기 로직
   Widget _buildGameScreen(BuildContext context, FlameGame game, String title) {
     final focusNode = FocusNode();
 

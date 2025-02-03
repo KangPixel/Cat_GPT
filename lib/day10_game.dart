@@ -1,4 +1,3 @@
-//경주게임 시작화면
 import 'package:flutter/material.dart';
 import 'day.dart';
 import 'status.dart';
@@ -28,9 +27,8 @@ class Day10GameScreen extends StatelessWidget {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  dayManager.resetDay(); // D-day를 10으로 리셋하고
-                  CatGame.instance?.updateDday(); // UI 업데이트를 명시적으로 호출
-                  Navigator.of(context).pop(); // 그 다음 화면 닫기
+                  dayManager.resetDay(); // D-day를 10으로 리셋
+                  CatGame.instance?.updateDday(); // UI 업데이트
                 },
                 child: const Text('나가기'),
               ),
