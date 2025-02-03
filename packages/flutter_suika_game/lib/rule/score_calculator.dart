@@ -1,3 +1,4 @@
+//packages/flutter_suika_game/lib/rule/score_calculator.dart
 import 'package:flutter_suika_game/model/fruit.dart';
 
 int getScore(Fruit? fruit) {

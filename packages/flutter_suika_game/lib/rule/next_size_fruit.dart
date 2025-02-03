@@ -1,3 +1,5 @@
+//packages/flutter_suika_game/lib/rule/next_size_fruit.dart
+//과일 병합 규칙 관리
 import 'package:flutter_suika_game/model/fruit.dart';
 import 'package:uuid/uuid.dart';
 

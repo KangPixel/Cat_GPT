@@ -1,3 +1,4 @@
+//packages/flutter_suika_game/lib/model/physics_fruit.dart
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';

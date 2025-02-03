@@ -1,3 +1,4 @@
+//packages/flutter_suika_game/lib/model/fruit.dart
 import 'package:flame/game.dart';
 import 'package:flame/palette.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';

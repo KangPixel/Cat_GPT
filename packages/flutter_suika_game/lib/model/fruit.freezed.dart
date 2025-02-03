@@ -1,3 +1,5 @@
+//packages/flutter_suika_game/lib/model/fruit.freezed.dart
+
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
