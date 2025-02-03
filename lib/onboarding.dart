@@ -168,9 +168,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // (추가) SharedPreferences에 온보딩 완료 상태 저장
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isOnboarded', true);
+    await prefs.setString('selectedCat', _selectedSpecies);
 
     print('고양이 이름: $catName');
     print('고양이 종: $_selectedSpecies');
+
+    await prefs.setString('catName', catName);
+    await prefs.setString('catSpecies', _selectedSpecies);
+
+    print('Saved catName: ${prefs.getString('catName')}'); 
+    print('Saved catSpecies: ${prefs.getString('catSpecies')}');
+
+    await prefs.setString('catImage', _catSpeciesList.firstWhere(
+      (species) => species['name'] == _selectedSpecies)['image']!);
 
     // 온보딩 완료 후, 메인 화면으로 이동
     Navigator.pushReplacementNamed(context, '/');
