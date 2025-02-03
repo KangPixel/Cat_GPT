@@ -373,7 +373,7 @@ class GameScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.info_outline), // 정보 버튼
             onPressed: () {
-              showCatGamePopup(context); // 메뉴(?) 팝업 창 호출
+              showCatGamePopup(context); // 게임 정보 팝업 창 호출
             },
           ),
         ],
@@ -450,28 +450,35 @@ class GameScreen extends StatelessWidget {
                           children: [
                             // 고양이 이름과 에너지 텍스트
                             ValueListenableBuilder<int>(
-                              // ValueNotifier의 변경을 감지하고 자동으로 UI를 업데이트해 줌
                               valueListenable: catStatus.energy,
                               builder: (context, value, _) {
-                                return Text(
-                                  'cat_name | 에너지 $value%', // 실시간 에너지 값 반영
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
+                                return FutureBuilder<SharedPreferences>(
+                                  future: SharedPreferences.getInstance(),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData) {
+                                      return const Text('Loading...', 
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      );
+                                    }
+                                    final prefs = snapshot.data!;
+                                    final catName = prefs.getString('catName') ?? '이름 없음';
+                                    
+                                    return Text(
+                                      '$catName | 에너지 $value%',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    );
+                                  },
                                 );
                               },
                             ),
-                            // Text를 사용하니 상태 변화를 감지하지 못하여 energy값이 실시간으로 적용되지 않음
-                            // Text(
-                            //   'cat_name | 에너지 ${catStatus.energy.value}%',
-                            //   style: const TextStyle(
-                            //     fontSize: 16,
-                            //     fontWeight: FontWeight.bold,
-                            //     color: Colors.black,
-                            //   ),
-                            // ),
                             const SizedBox(height: 2),
                             // 에너지 막대 그래프
                             UIComponents._buildCatButtonEnergyBar(catStatus.energy),
