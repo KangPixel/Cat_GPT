@@ -6,6 +6,9 @@ import 'flameui.dart'; // CatGame 및 Flame 관련 로직
 import 'status.dart';
 import 'day.dart';
 import 'eatsleep.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'copyright.dart';
+import 'game_manual.dart';
 
 // UI 구성 요소들을 제공하는 클래스
 class UIComponents {
@@ -154,102 +157,185 @@ class UIComponents {
   }
 }
 
-// 팝업 창을 표시하는 함수
-void showCatProfilePopup(BuildContext context) {
+// 고양이 정보 팝업 창을 표시하는 함수
+void showCatProfilePopup(BuildContext context) async {
   showDialog(
     context: context,
     builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: Colors.yellow[50], // 기본 배경 색 조정
-        contentPadding: EdgeInsets.zero,
-        content: Container(
-          width: MediaQuery.of(context).size.width * 0.8,
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.0),  // 모서리 둥굴게
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 고양이 프로필 상단
-              Row(
+      return FutureBuilder<SharedPreferences>(
+        future: SharedPreferences.getInstance(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator()); // 데이터 로딩 중
+          }
+
+          final prefs = snapshot.data!;
+          final catName = prefs.getString('catName') ?? '이름 없음';
+          final catSpecies = prefs.getString('catSpecies') ?? '품종 없음';
+
+          // SharedPreferences에서 선택한 고양이 종 가져오기
+          String selectedCat = prefs.getString('selectedCat') ?? '회냥이'; // 기본값
+
+          // 선택한 고양이 종에 맞는 이미지 파일 매핑
+          final Map<String, String> catImages = {
+            '회냥이': 'gray_cat',
+            '흰냥이': 'white_cat',
+            '갈냥이': 'brown_cat',
+            '아이보리냥이': 'ivory_cat',
+          };
+
+          String catFileName = catImages[selectedCat] ?? 'gray_cat';
+
+          return AlertDialog(
+            backgroundColor: Colors.yellow[50], // 기본 배경 색 조정
+            contentPadding: EdgeInsets.zero,
+            content: Container(
+              width: MediaQuery.of(context).size.width * 0.8,
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12.0), // 모서리 둥글게
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // 고양이 프로필 사진
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.asset(
-                      'assets/images/gray_cat.png',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.contain,  // BoxFit.cover로는 이미지가 짤려서 바꿈
-                      alignment: Alignment.center,  // 중앙 정렬
-                    ),
-                  ),
-                  const SizedBox(width: 16.0),
-                  // 고양이 이름, 품종, 생일
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        '이름: cat_name', // 고양이 이름
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  // 고양이 프로필 상단
+                  Row(
+                    children: [
+                      // 고양이 프로필 사진
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.asset(
+                          'assets/images/cat/$catFileName.png',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.contain, // BoxFit.cover로는 이미지가 짤려서 바꿈
+                          alignment: Alignment.center, // 중앙 정렬
+                        ),
                       ),
-                      SizedBox(height: 4.0),
-                      Text(
-                        '품종: cat_species', // 고양이 품종
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                      SizedBox(height: 4.0),
-                      Text(
-                        '생일: 2023-01-01', // 고양이 생일
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      const SizedBox(width: 16.0),
+                      // 고양이 이름, 품종, 생일
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '이름: $catName', // 저장된 이름 사용
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4.0),
+                          Text(
+                            '품종: $catSpecies', // 저장된 품종 사용
+                            style: const TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 4.0),
+                          const Text(
+                            '생일: 2023-01-01', // 고정값 (나중에 수정 가능)
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
                       ),
                     ],
                   ),
+                  const SizedBox(height: 20.0),
+                  // 에너지, 피로도, 친밀도 그래프 창
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 105, 35, 30),
+                      borderRadius: BorderRadius.circular(13.0),
+                    ),
+                    padding: const EdgeInsets.all(16.0), // 여백 추가
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                            '에너지 ${catStatus.energy.value}%',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10.0),
+                        UIComponents._buildEnergyBar(catStatus.energy),
+                        const SizedBox(height: 15.0),
+                        UIComponents._buildStatBar(
+                          '피로도', catStatus.fatigue.value, Colors.deepOrange, 100),
+                        const SizedBox(height: 5.0),
+                        UIComponents._buildStatBar(
+                          '친밀도', catStatus.intimacy.value, Colors.green, 10),
+                        const SizedBox(height: 8.0),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20.0),
+                  // 닫기 버튼을 중앙에 배치
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('닫기'),
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 20.0),
-              // 에너지, 피로도, 친밀도 그래프 창
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+// 게임 정보 팝업 창을 표시하는 함수
+void showCatGamePopup(BuildContext context) async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.yellow[50], // 기본 배경 색 조정
+          contentPadding: EdgeInsets.zero,
+          content: Container(
+            // height: MediaQuery.of(context).size.height * 0.5,
+            // width: MediaQuery.of(context).size.width * 0.5,
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12.0), // 모서리 둥글게
+            ),
+            child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               Container(
-                decoration: BoxDecoration(
-                  // 상태 배경 추가
-                  color: const Color.fromARGB(255, 105, 35, 30),
-                  borderRadius: BorderRadius.circular(13.0),
+                // 게임 설명 화면 버튼
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const GameManualPage()),
+                    );
+                  },
+                  child: const Text('게임 설명'),
                 ),
-                
-                padding: const EdgeInsets.all(16.0), // 여백 추가
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Align(
-                      // 텍스트만 적용시킬려고 이격 함
-                      alignment: Alignment.center, // 텍스트만 중앙 정렬
-                      child: Text(
-                        '에너지 ${catStatus.energy.value}%',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 17, 
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10.0),
-                    UIComponents._buildEnergyBar(catStatus.energy),
-                    const SizedBox(height: 15.0),
-                    UIComponents._buildStatBar(
-                      '피로도', catStatus.fatigue.value, Colors.deepOrange, 100),
-                    const SizedBox(height: 5.0),
-                    UIComponents._buildStatBar(
-                      '친밀도', catStatus.intimacy.value, Colors.green, 10),
-                    const SizedBox(height: 8.0),
-                  ],
+              ),
+              const SizedBox(height: 20.0),
+              Container(
+                // 저작권 확인 버튼
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CopyrightPage()),
+                    );
+                  },
+                  child: const Text('저작권'),
                 ),
               ),
               const SizedBox(height: 20.0),
               // 닫기 버튼을 중앙에 배치
               Center(
-                // 닫기 버튼
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -287,7 +373,7 @@ class GameScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.info_outline), // 정보 버튼
             onPressed: () {
-              showCatProfilePopup(context); // 정보 팝업 창 호출
+              showCatGamePopup(context); // 메뉴(?) 팝업 창 호출
             },
           ),
         ],

@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'status.dart';
 import 'day.dart';
 import 'touch.dart';
+// import 'onboarding.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CatGame extends FlameGame with TapDetector {
   static CatGame? instance;
@@ -20,9 +22,24 @@ class CatGame extends FlameGame with TapDetector {
   Future<void> onLoad() async {
     instance = this;
 
+    // SharedPreferences에서 선택한 고양이 종 가져오기
+    final prefs = await SharedPreferences.getInstance();
+    String selectedCat = prefs.getString('selectedCat') ?? '회냥이'; // 기본값
+
+    // 선택한 고양이 종에 맞는 이미지 파일 매핑
+    final Map<String, String> catImages = {
+      '회냥이': 'gray_cat',
+      '흰냥이': 'white_cat',
+      '갈냥이': 'brown_cat',
+      '아이보리냥이': 'ivory_cat',
+    };
+
+    String catFileName = catImages[selectedCat] ?? 'gray_cat';
+
+
     // 고양이 스프라이트 미리 로드
-    _normalSprite = await loadSprite('gray_cat.png');
-    _openMouthSprite = await loadSprite('gray_cat_open_mouth.png');
+    _normalSprite = await loadSprite('cat/$catFileName.png');
+    _openMouthSprite = await loadSprite('cat/${catFileName}_open_mouth.png');
 
     // ValueNotifier에 초기 스프라이트 설정
     catStatus.catSprite.value = _normalSprite;
@@ -78,11 +95,11 @@ class CatGame extends FlameGame with TapDetector {
   }
 
   // 잠자기 기능에서 호출할 리셋 함수
-  void resetGame() {
-    touchManager.resetTouchCount();
-    catStatus.catSprite.value = _normalSprite; // 스프라이트 초기화
-    updateDday();
-  }
+  // void resetGame() {
+  //   touchManager.resetTouchCount();
+  //   catStatus.catSprite.value = _normalSprite; // 스프라이트 초기화
+  //   updateDday();
+  // }
 
   void updateDday() {
     _calendarComponent.updateDays(dayManager.currentDay); // 캘린더 업데이트
