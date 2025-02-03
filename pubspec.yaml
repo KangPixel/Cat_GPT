@@ -19,6 +19,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.3.5
   playing_cards: 0.3.1+9
+  flutter_native_splash: ^2.4.4
+
+
+
 
   # Local packages
   jump_rope_game:
@@ -42,8 +46,6 @@ flutter:
   uses-material-design: true
   assets:
 
-    - assets/images/gray_cat.png
-    - assets/images/gray_cat_open_mouth.png
     - assets/images/suika_game/
     - assets/images/food.png
     - assets/images/sleep.png
@@ -51,5 +53,6 @@ flutter:
     - assets/images/speech_bubble.png
     - assets/images/pixel_cat.png
     - assets/images/fish.png
-    
+    - assets/images/cat/
+  
     - assets/images/
