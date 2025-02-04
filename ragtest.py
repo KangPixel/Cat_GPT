@@ -5,6 +5,12 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from dotenv import load_dotenv
+import os
+
+# 환경 변수 로드
+load_dotenv()
+api_key = os.environ.get("OPENAI_API_KEY")
 
 # 단계 1: 문서 로드(Load Documents)
 loader = TextLoader("data/cat_personality.txt", encoding="utf-8")
@@ -59,7 +65,7 @@ chain = (
 # 체인 실행(Run Chain)
 # 문서에 대한 질의를 입력하고, 답변을 출력합니다.
 question = """ "낮은 친밀도 (1-3점)"인 상태에서
-   사용자 입력: 츄르 먹자
+   사용자 입력: 난 솔직히 강아지보다 고양이가 귀여워
    이와 관련된 고양이의 성격, 행동 패턴과 대화 스타일"""
 response = chain.invoke(question)
 print(response)

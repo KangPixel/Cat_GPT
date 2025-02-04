@@ -176,15 +176,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setBool('isOnboarded', true);
     await prefs.setString('selectedCat', _selectedSpecies);
 
-<<<<<<< HEAD
-    print('Saved catName: ${prefs.getString('catName')}');
-    print('Saved catSpecies: ${prefs.getString('catSpecies')}');
-
-    await prefs.setString(
-        'catImage',
-        _catSpeciesList.firstWhere(
-            (species) => species['name'] == _selectedSpecies)['image']!);
-=======
     // **탄생일 기록** (오늘 날짜)
     final DateTime now = DateTime.now();
     final String birthdayString = '${now.year}년 ${now.month}월 ${now.day}일';
@@ -193,7 +184,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     print('고양이 이름: $catName');
     print('고양이 종: $_selectedSpecies');
     print('탄생일: $birthdayString');
->>>>>>> 5826cedd53c3df524ef43a186cb7a4b256e08047
 
     // 4) 알림창(다이얼로그) 표시
     await showDialog(
