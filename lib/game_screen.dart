@@ -6,6 +6,9 @@ import 'flameui.dart'; // CatGame 및 Flame 관련 로직
 import 'status.dart';
 import 'day.dart';
 import 'eatsleep.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'copyright.dart';
+import 'game_manual.dart';
 
 // UI 구성 요소들을 제공하는 클래스
 class UIComponents {
@@ -16,10 +19,10 @@ class UIComponents {
       builder: (context, value, _) {
         final clampedValue = value.clamp(0, 100); // 0~100 범위로 강제
         final color = clampedValue > 70
-            ? Colors.green  // 70% 이상이면 초록
-            : (clampedValue > 30 
-            ? Colors.yellow // 70% 미만이고 30% 이상이면 노랑
-            : Colors.red); // 그 이하면 빨강
+            ? Colors.green // 70% 이상이면 초록
+            : (clampedValue > 30
+                ? Colors.yellow // 70% 미만이고 30% 이상이면 노랑
+                : Colors.red); // 그 이하면 빨강
         return Container(
           height: 30,
           decoration: BoxDecoration(
@@ -31,18 +34,18 @@ class UIComponents {
             child: Stack(
               children: [
                 Container(
-                  color: Colors.white,  // 빈 화면(배경)을 하얀색 
+                  color: Colors.white, // 빈 화면(배경)을 하얀색
                 ),
                 FractionallySizedBox(
-                  widthFactor: clampedValue / 100,  // 100분율
+                  widthFactor: clampedValue / 100, // 100분율
                   child: Container(color: color),
                 ),
-                Center( // 에너지 표시는 따로 Text에서 표기하기로 바뀜
-                  // child: Text(
-                  //   '$clampedValue%', // 현재 에너지 표시
-                  //   style: const TextStyle(fontWeight: FontWeight.bold),
-                  // ),
-                ),
+                Center(// 에너지 표시는 따로 Text에서 표기하기로 바뀜
+                    // child: Text(
+                    //   '$clampedValue%', // 현재 에너지 표시
+                    //   style: const TextStyle(fontWeight: FontWeight.bold),
+                    // ),
+                    ),
               ],
             ),
           ),
@@ -58,10 +61,10 @@ class UIComponents {
       builder: (context, value, _) {
         final clampedValue = value.clamp(0, 100); // 0~100 범위로 강제
         final color = clampedValue > 70
-            ? Colors.green  // 70% 이상이면 초록
-            : (clampedValue > 30 
-            ? Colors.yellow // 70% 미만이고 30% 이상이면 노랑
-            : Colors.red); // 그 이하면 빨강
+            ? Colors.green // 70% 이상이면 초록
+            : (clampedValue > 30
+                ? Colors.yellow // 70% 미만이고 30% 이상이면 노랑
+                : Colors.red); // 그 이하면 빨강
         return Container(
           height: 15,
           decoration: BoxDecoration(
@@ -73,10 +76,10 @@ class UIComponents {
             child: Stack(
               children: [
                 Container(
-                  color: Colors.white,  // 빈 화면(배경)을 하얀색 
+                  color: Colors.white, // 빈 화면(배경)을 하얀색
                 ),
                 FractionallySizedBox(
-                  widthFactor: clampedValue / 100,  // 100분율
+                  widthFactor: clampedValue / 100, // 100분율
                   child: Container(color: color),
                 ),
               ],
@@ -88,13 +91,16 @@ class UIComponents {
   }
 
   // 상태(스테이터스) 막대 그래프 생성
-  static Widget _buildStatBar(String label, int value, Color color, int percentage) {
+  static Widget _buildStatBar(
+      String label, int value, Color color, int percentage) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text( // 스테이터스 이름 및 현재 량
+        Text(
+          // 스테이터스 이름 및 현재 량
           '$label: $value',
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+          style: const TextStyle(
+              fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         const SizedBox(height: 4.0),
         Container(
@@ -104,7 +110,7 @@ class UIComponents {
             border: Border.all(color: Colors.black, width: 1.5),
             borderRadius: BorderRadius.circular(8.0),
           ),
-          child: FractionallySizedBox(  
+          child: FractionallySizedBox(
             // percentage 만큼 % 표시
             widthFactor: value / percentage,
             alignment: Alignment.centerLeft,
@@ -122,9 +128,9 @@ class UIComponents {
 
   // 버튼 형태 생성
   static Widget buildButtonWithBackground({
-    required String label,  // label
-    required String backgroundImage,  // 배경 이미지 받기
-    required VoidCallback onTap,  // 누를 시 작동
+    required String label, // label
+    required String backgroundImage, // 배경 이미지 받기
+    required VoidCallback onTap, // 누를 시 작동
   }) {
     return Container(
       // 버튼 형식
@@ -133,8 +139,8 @@ class UIComponents {
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage(backgroundImage), // 이미지 받아온 것
-          fit: BoxFit.contain,  // BoxFit.cover로는 이미지가 짤려서 바꿈
-          alignment: Alignment.center,  // 중앙 정렬
+          fit: BoxFit.contain, // BoxFit.cover로는 이미지가 짤려서 바꿈
+          alignment: Alignment.center, // 중앙 정렬
         ),
         borderRadius: BorderRadius.circular(8.0), // 둥굴게
       ),
@@ -144,18 +150,152 @@ class UIComponents {
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
         ),
-        child: Text(
-          ''
-          //label,
-          //style: const TextStyle(fontSize: 16, color: Colors.white),
-        ),
+        child: Text(''
+            //label,
+            //style: const TextStyle(fontSize: 16, color: Colors.white),
+            ),
       ),
     );
   }
 }
 
-// 팝업 창을 표시하는 함수
-void showCatProfilePopup(BuildContext context) {
+// 고양이 정보 팝업 창을 표시하는 함수
+void showCatProfilePopup(BuildContext context) async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return FutureBuilder<SharedPreferences>(
+        future: SharedPreferences.getInstance(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator()); // 데이터 로딩 중
+          }
+
+          final prefs = snapshot.data!;
+          final catName = prefs.getString('catName') ?? '이름 없음';
+          final catSpecies = prefs.getString('catSpecies') ?? '품종 없음';
+
+          // SharedPreferences에서 선택한 고양이 종 가져오기
+          String selectedCat = prefs.getString('selectedCat') ?? '회냥이'; // 기본값
+
+          // 선택한 고양이 종에 맞는 이미지 파일 매핑
+          final Map<String, String> catImages = {
+            '회냥이': 'gray_cat',
+            '흰냥이': 'white_cat',
+            '갈냥이': 'brown_cat',
+            '아이보리냥이': 'ivory_cat',
+          };
+
+          String catFileName = catImages[selectedCat] ?? 'gray_cat';
+
+          return AlertDialog(
+            backgroundColor: Colors.yellow[50], // 기본 배경 색 조정
+            contentPadding: EdgeInsets.zero,
+            content: Container(
+              width: MediaQuery.of(context).size.width * 0.8,
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12.0), // 모서리 둥글게
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 고양이 프로필 상단
+                  Row(
+                    children: [
+                      // 고양이 프로필 사진
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.asset(
+                          'assets/images/cat/$catFileName.png',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.contain, // BoxFit.cover로는 이미지가 짤려서 바꿈
+                          alignment: Alignment.center, // 중앙 정렬
+                        ),
+                      ),
+                      const SizedBox(width: 16.0),
+                      // 고양이 이름, 품종, 생일
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '이름: $catName', // 저장된 이름 사용
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4.0),
+                          Text(
+                            '품종: $catSpecies', // 저장된 품종 사용
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 4.0),
+                          const Text(
+                            '생일: 2023-01-01', // 고정값 (나중에 수정 가능)
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20.0),
+                  // 에너지, 피로도, 친밀도 그래프 창
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 105, 35, 30),
+                      borderRadius: BorderRadius.circular(13.0),
+                    ),
+                    padding: const EdgeInsets.all(16.0), // 여백 추가
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                            '에너지 ${catStatus.energy.value}%',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10.0),
+                        UIComponents._buildEnergyBar(catStatus.energy),
+                        const SizedBox(height: 15.0),
+                        UIComponents._buildStatBar('피로도',
+                            catStatus.fatigue.value, Colors.deepOrange, 100),
+                        const SizedBox(height: 5.0),
+                        UIComponents._buildStatBar(
+                            '친밀도', catStatus.intimacy.value, Colors.green, 10),
+                        const SizedBox(height: 8.0),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20.0),
+                  // 닫기 버튼을 중앙에 배치
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('닫기'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+// 게임 정보 팝업 창을 표시하는 함수
+void showCatGamePopup(BuildContext context) async {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -163,93 +303,45 @@ void showCatProfilePopup(BuildContext context) {
         backgroundColor: Colors.yellow[50], // 기본 배경 색 조정
         contentPadding: EdgeInsets.zero,
         content: Container(
-          width: MediaQuery.of(context).size.width * 0.8,
+          // height: MediaQuery.of(context).size.height * 0.5,
+          // width: MediaQuery.of(context).size.width * 0.5,
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12.0),  // 모서리 둥굴게
+            borderRadius: BorderRadius.circular(12.0), // 모서리 둥글게
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 고양이 프로필 상단
-              Row(
-                children: [
-                  // 고양이 프로필 사진
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.asset(
-                      'assets/images/gray_cat.png',
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.contain,  // BoxFit.cover로는 이미지가 짤려서 바꿈
-                      alignment: Alignment.center,  // 중앙 정렬
-                    ),
-                  ),
-                  const SizedBox(width: 16.0),
-                  // 고양이 이름, 품종, 생일
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        '이름: cat_name', // 고양이 이름
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 4.0),
-                      Text(
-                        '품종: cat_species', // 고양이 품종
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                      SizedBox(height: 4.0),
-                      Text(
-                        '생일: 2023-01-01', // 고양이 생일
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ],
+              Container(
+                // 게임 설명 화면 버튼
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const GameManualPage()),
+                    );
+                  },
+                  child: const Text('게임 설명'),
+                ),
               ),
               const SizedBox(height: 20.0),
-              // 에너지, 피로도, 친밀도 그래프 창
               Container(
-                decoration: BoxDecoration(
-                  // 상태 배경 추가
-                  color: const Color.fromARGB(255, 105, 35, 30),
-                  borderRadius: BorderRadius.circular(13.0),
-                ),
-                
-                padding: const EdgeInsets.all(16.0), // 여백 추가
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Align(
-                      // 텍스트만 적용시킬려고 이격 함
-                      alignment: Alignment.center, // 텍스트만 중앙 정렬
-                      child: Text(
-                        '에너지 ${catStatus.energy.value}%',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 17, 
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10.0),
-                    UIComponents._buildEnergyBar(catStatus.energy),
-                    const SizedBox(height: 15.0),
-                    UIComponents._buildStatBar(
-                      '피로도', catStatus.fatigue.value, Colors.deepOrange, 100),
-                    const SizedBox(height: 5.0),
-                    UIComponents._buildStatBar(
-                      '친밀도', catStatus.intimacy.value, Colors.green, 10),
-                    const SizedBox(height: 8.0),
-                  ],
+                // 저작권 확인 버튼
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const CopyrightPage()),
+                    );
+                  },
+                  child: const Text('저작권'),
                 ),
               ),
               const SizedBox(height: 20.0),
               // 닫기 버튼을 중앙에 배치
               Center(
-                // 닫기 버튼
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -279,7 +371,7 @@ class GameScreen extends StatelessWidget {
           '게임명 / 로고',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            ),
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.cyan[50],
@@ -287,7 +379,7 @@ class GameScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.info_outline), // 정보 버튼
             onPressed: () {
-              showCatProfilePopup(context); // 정보 팝업 창 호출
+              showCatGamePopup(context); // 게임 정보 팝업 창 호출
             },
           ),
         ],
@@ -303,7 +395,7 @@ class GameScreen extends StatelessWidget {
                   color: Colors.cyan[50],
                 );
               },
-              ),
+            ),
           ),
 
           // Cat 정보 버튼 (화면 중앙 정렬)
@@ -322,7 +414,7 @@ class GameScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(50.0), // 모서리 둥글게
                   border: Border.all(
                     color: Colors.black, // 테두리 색
-                    width: 2.0,          // 테두리 두께
+                    width: 2.0, // 테두리 두께
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -346,8 +438,8 @@ class GameScreen extends StatelessWidget {
                             padding: const EdgeInsets.all(7.0),
                             child: Image.asset(
                               'assets/images/pixel_cat.png', // 고양이 이미지
-                              fit: BoxFit.contain,  // BoxFit.cover로는 이미지가 짤려서 바꿈
-                              alignment: Alignment.center,  // 중앙 정렬
+                              fit: BoxFit.contain, // BoxFit.cover로는 이미지가 짤려서 바꿈
+                              alignment: Alignment.center, // 중앙 정렬
                             ),
                           ),
                         ),
@@ -357,38 +449,49 @@ class GameScreen extends StatelessWidget {
                     // 오른쪽: 고양이 이름 & 에너지 텍스트 + 에너지 바
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 15),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             // 고양이 이름과 에너지 텍스트
                             ValueListenableBuilder<int>(
-                              // ValueNotifier의 변경을 감지하고 자동으로 UI를 업데이트해 줌
                               valueListenable: catStatus.energy,
                               builder: (context, value, _) {
-                                return Text(
-                                  'cat_name | 에너지 $value%', // 실시간 에너지 값 반영
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
+                                return FutureBuilder<SharedPreferences>(
+                                  future: SharedPreferences.getInstance(),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData) {
+                                      return const Text(
+                                        'Loading...',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      );
+                                    }
+                                    final prefs = snapshot.data!;
+                                    final catName =
+                                        prefs.getString('catName') ?? '이름 없음';
+
+                                    return Text(
+                                      '$catName | 에너지 $value%',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    );
+                                  },
                                 );
                               },
                             ),
-                            // Text를 사용하니 상태 변화를 감지하지 못하여 energy값이 실시간으로 적용되지 않음
-                            // Text(
-                            //   'cat_name | 에너지 ${catStatus.energy.value}%',
-                            //   style: const TextStyle(
-                            //     fontSize: 16,
-                            //     fontWeight: FontWeight.bold,
-                            //     color: Colors.black,
-                            //   ),
-                            // ),
                             const SizedBox(height: 2),
                             // 에너지 막대 그래프
-                            UIComponents._buildCatButtonEnergyBar(catStatus.energy),
+                            UIComponents._buildCatButtonEnergyBar(
+                                catStatus.energy),
                           ],
                         ),
                       ),
@@ -408,7 +511,7 @@ class GameScreen extends StatelessWidget {
               backgroundImage: 'assets/images/food.png',
               onTap: () {
                 debugPrint("Eat pressed");
-                eatAction(context);  // eatsleep.dart 파일에서 불러옴
+                eatAction(context); // eatsleep.dart 파일에서 불러옴
               },
             ),
           ),

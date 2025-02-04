@@ -1,3 +1,4 @@
+//packages/flutter_suika_game/lib/model/physics_wall.dart
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter_suika_game/model/wall.dart';
 

@@ -12,6 +12,8 @@ import 'eatsleep.dart';
 import 'day10_game.dart';
 import 'game_screen.dart';
 import 'play.dart';
+import 'copyright.dart';
+import 'game_manual.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +23,7 @@ void main() async {
   await Future.delayed(const Duration(seconds: 5));
   
   // 스플래시 제거
+  debugPrint('remove Splash');
   FlutterNativeSplash.remove();
 
   // 온보딩 여부 체크
@@ -47,6 +50,8 @@ class MyApp extends StatelessWidget {
         '/chat': (context) => const ChatScreen(),
         '/day10Game': (context) => const Day10GameScreen(),
         '/play': (context) => const PlayScreen(),
+        '/copyright': (context) => const CopyrightPage(),
+        '/manual': (context) => const GameManualPage(),
       },
     );
   }

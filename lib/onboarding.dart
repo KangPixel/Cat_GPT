@@ -172,6 +172,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await prefs.setString('catName', catName);
     await prefs.setString('catSpecies', _selectedSpecies);
     await prefs.setBool('isOnboarded', true);
+    await prefs.setString('selectedCat', _selectedSpecies);
 
     // **탄생일 기록** (오늘 날짜)
     final DateTime now = DateTime.now();
