@@ -36,8 +36,6 @@ class CatGame extends FlameGame with TapDetector {
 
     String catFileName = catImages[selectedCat] ?? 'gray_cat';
 
-
-    // 고양이 스프라이트 미리 로드
     _normalSprite = await loadSprite('cat/$catFileName.png');
     _openMouthSprite = await loadSprite('cat/${catFileName}_open_mouth.png');
 
@@ -121,16 +119,14 @@ class CalendarComponent extends PositionComponent {
     add(RectangleComponent(
       position: Vector2(0, 0),
       size: Vector2(size.x, size.y * 0.25),
-      paint: Paint()
-        ..color = Colors.red,
+      paint: Paint()..color = Colors.red,
     ));
 
     // 흰색 하단 사각형
     add(RectangleComponent(
       position: Vector2(0, size.y * 0.25),
       size: Vector2(size.x, size.y * 0.75),
-      paint: Paint()
-        ..color = Colors.white,
+      paint: Paint()..color = Colors.white,
     ));
 
     // 일반 텍스트 부분
@@ -174,7 +170,7 @@ class FlameGameScreen extends StatelessWidget {
   final CatGame game = CatGame();
 
   FlameGameScreen({Key? key}) : super(key: key);
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

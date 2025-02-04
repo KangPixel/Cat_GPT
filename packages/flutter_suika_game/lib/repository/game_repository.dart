@@ -1,3 +1,5 @@
+//packages/flutter_suika_game/lib/repository/game_repository.dart
+//과일 간의 충돌 정보 저장 관리
 import 'package:flame_forge2d/flame_forge2d.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_suika_game/model/physics_fruit.dart';

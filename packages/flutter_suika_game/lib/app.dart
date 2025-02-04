@@ -1,3 +1,5 @@
+//packages/flutter_suika_game/lib/app.dart
+
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_suika_game/route/navigator_key.dart';

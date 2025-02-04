@@ -1,3 +1,4 @@
+//packages/flutter_suika_game/lib/model/score.dart
 import 'dart:async';
 
 import 'package:flame/components.dart';

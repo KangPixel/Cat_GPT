@@ -1,3 +1,4 @@
+//packages/flutter_suika_game/lib/route/navigator_key.dart
 import 'package:flutter/material.dart';
 
 // Timing issue with reset in GetIt,
