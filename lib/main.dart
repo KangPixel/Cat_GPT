@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'onboarding_slides.dart';
 import 'onboarding.dart';
 import 'flameui.dart';
 import 'chat.dart';
@@ -42,8 +43,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Cat Game',
-      initialRoute: isOnboarded ? '/' : '/onboarding',
+      initialRoute: isOnboarded ? '/' : '/onboarding_slides',
       routes: {
+        '/onboarding_slides': (context) => const OnboardingSlides(),
         '/onboarding': (context) => const OnboardingScreen(),
         '/': (context) => GameScreen(),
         '/chat': (context) => const ChatScreen(),
