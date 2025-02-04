@@ -1,6 +1,7 @@
 // onboarding.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'status.dart'; // 추가
 
 class OnboardingScreen extends StatefulWidget {
   static const routeName = '/onboarding';
@@ -51,7 +52,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   borderSide: BorderSide(color: Colors.black),
                 ),
                 focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color.fromARGB(255, 108, 255, 160)),
+                  borderSide:
+                      BorderSide(color: Color.fromARGB(255, 108, 255, 160)),
                 ),
               ),
             ),
@@ -174,13 +176,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     print('고양이 종: $_selectedSpecies');
 
     await prefs.setString('catName', catName);
+    catStatus.catName.value = catName; // 추가;
     await prefs.setString('catSpecies', _selectedSpecies);
 
-    print('Saved catName: ${prefs.getString('catName')}'); 
+    print('Saved catName: ${prefs.getString('catName')}');
     print('Saved catSpecies: ${prefs.getString('catSpecies')}');
 
-    await prefs.setString('catImage', _catSpeciesList.firstWhere(
-      (species) => species['name'] == _selectedSpecies)['image']!);
+    await prefs.setString(
+        'catImage',
+        _catSpeciesList.firstWhere(
+            (species) => species['name'] == _selectedSpecies)['image']!);
 
     // 온보딩 완료 후, 메인 화면으로 이동
     Navigator.pushReplacementNamed(context, '/');

@@ -101,7 +101,7 @@ input_validator_prompt = ChatPromptTemplate.from_template(
 
 rag_prompt = ChatPromptTemplate.from_template(
     """
-당신은 모바일 게임 속 고양이입니다. 
+당신은 모바일 게임 속 고양이입니다. 당신의 이름은 {catName}입니다.
 
 다음 <정보>들을 바탕으로 사용자의 입력에 <고양이같은 반응>으로 반응해주세요.
 
@@ -169,7 +169,7 @@ def get_relevant_context(user_input: str, intimacy: int) -> str:
     return context
 
 
-def generate_response(user_input: str, intimacy: int) -> str:
+def generate_response(user_input: str, intimacy: int, catName: str) -> str:
     """RAG를 활용한 응답 생성"""
     try:
         start_time = time.time()
@@ -183,6 +183,7 @@ def generate_response(user_input: str, intimacy: int) -> str:
                 "input": RunnablePassthrough(),
                 "intimacy": lambda _: intimacy,
                 "history": lambda _: chat_history,
+                "catName": lambda _: catName,  # 추가
             }
             | rag_prompt
             | main_llm
@@ -231,11 +232,14 @@ def chat():
         start_time = time.time()
 
         data = request.get_json()
+        print("Received data:", data)
         if not data or "message" not in data:
             return jsonify({"error": "Invalid request data"}), 400
 
         user_input = data.get("message", "")
         current_intimacy = max(1, min(10, data.get("status", {}).get("intimacy", 1)))
+        catName = data.get("status", {}).get("catName", "")  # 추가
+        print("Extracted catName:", catName)  # catName 값 확인
 
         if not validate_input(user_input):
             return jsonify(
@@ -245,7 +249,8 @@ def chat():
                 }
             )
 
-        bot_response = generate_response(user_input, current_intimacy)
+        bot_response = generate_response(user_input, current_intimacy, catName)
+        print("Generated response:", bot_response)  # 생성된 응답 확인
         intimacy_delta = extract_status_change(bot_response)
 
         new_intimacy = current_intimacy + intimacy_delta

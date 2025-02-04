@@ -16,11 +16,12 @@ import 'game_manual.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
+  FlutterNativeSplash.preserve(
+      widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
 
   // 5초 지연
   await Future.delayed(const Duration(seconds: 5));
-  
+
   // 스플래시 제거
   debugPrint('remove Splash');
   FlutterNativeSplash.remove();
