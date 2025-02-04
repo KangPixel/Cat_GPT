@@ -42,13 +42,19 @@ class CatGame extends FlameGame with TapDetector {
     // ValueNotifier에 초기 스프라이트 설정
     catStatus.catSprite.value = _normalSprite;
 
+    // 이미지 원본 비율 유지하며 크기 조정
+    double catWidth = size.x * 0.45;
+    double aspectRatio = _normalSprite.image.height / _normalSprite.image.width;
+    double catHeight = catWidth * aspectRatio;
+
     // 고양이 컴포넌트
     cat = SpriteComponent()
       ..sprite = catStatus.catSprite.value
-      ..size = Vector2(size.x * 0.45, size.y * 0.4)
+      // ..size = Vector2(size.x * 0.45, size.y * 0.4)
+      ..size = Vector2(catWidth, catHeight)
       ..position = Vector2(
-        size.x / 2 - size.x * 0.23,
-        size.y / 2 - size.y * 0.18,
+        (size.x - catWidth) / 2,
+        size.y / 2 - catHeight * 0.45,
       );
     add(cat);
 

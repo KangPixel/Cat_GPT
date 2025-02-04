@@ -57,7 +57,15 @@ class GameManualPage extends StatelessWidget {
                 '• 에너지가 50% 이상일 때 플레이 가능\n'
                 '• 미니게임 성공 시 포인트 획득! 원하는 스탯에 분배해 주세요~\n'
                 '• 다양한 게임을 즐길 수 있습니다!',
-                Icons.games,
+                Icons.videogame_asset,
+              ),
+              const SizedBox(height: 20),
+              _buildManualSection(
+                '레이싱',
+                '• 10일이 지나면 플레이 가능\n'
+                '• 10일동안 미니게임으로 단련시킨 스탯으로 달리게 됩니다.\n'
+                '• 레이싱에서 1등을 노려보세요!',
+                Icons.stars,
               ),
               const SizedBox(height: 20),
               _buildManualSection(
