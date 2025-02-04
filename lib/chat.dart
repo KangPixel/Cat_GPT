@@ -6,7 +6,7 @@ import 'status.dart';
 import 'chat_log.dart';
 
 const backendUrl = 'http://34.22.100.160:8000/chat';
-//const backendUrl = 'https://2b18-112-187-152-186.ngrok-free.app/chat';
+// 로컬 테스트용 const backendUrl = 'https://b061-59-6-8-186.ngrok-free.app/chat';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({Key? key}) : super(key: key);
@@ -22,6 +22,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void initState() {
     super.initState();
+
     // 화면이 처음 로드될 때 스크롤을 맨 아래로 이동
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToBottom();
@@ -46,13 +47,15 @@ class _ChatScreenState extends State<ChatScreen> {
           'message': prompt,
           'status': {
             'intimacy': catStatus.intimacy.value,
+            'catName': catStatus.catName.value,
           },
         }),
       );
 
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
-        final botResponse = jsonResponse['response'];
+        //기존 json 형식 출력 final botResponse = jsonResponse['response'];
+        final botResponse = jsonDecode(jsonResponse['response']);
         final statusChanges = jsonResponse['status_changes'];
 
         if (statusChanges != null) {
@@ -62,7 +65,8 @@ class _ChatScreenState extends State<ChatScreen> {
         }
 
         setState(() {
-          chatLog.addMessage('assistant', botResponse);
+          //기존 json 형식 출력 chatLog.addMessage('assistant', botResponse);
+          chatLog.addMessage('assistant', botResponse['response']);
         });
         _scrollToBottom();
       } else {

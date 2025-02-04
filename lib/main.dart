@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'onboarding_slides.dart';
 import 'onboarding.dart';
 import 'flameui.dart';
 import 'chat.dart';
@@ -16,11 +17,12 @@ import 'game_manual.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
+  FlutterNativeSplash.preserve(
+      widgetsBinding: WidgetsFlutterBinding.ensureInitialized());
 
   // 5초 지연
   await Future.delayed(const Duration(seconds: 5));
-  
+
   // 스플래시 제거
   debugPrint('remove Splash');
   FlutterNativeSplash.remove();
@@ -41,8 +43,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Cat Game',
-      initialRoute: isOnboarded ? '/' : '/onboarding',
+      initialRoute: isOnboarded ? '/' : '/onboarding_slides',
       routes: {
+        '/onboarding_slides': (context) => const OnboardingSlides(),
         '/onboarding': (context) => const OnboardingScreen(),
         '/': (context) => GameScreen(),
         '/chat': (context) => const ChatScreen(),
