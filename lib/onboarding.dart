@@ -51,7 +51,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   borderSide: BorderSide(color: Colors.black),
                 ),
                 focusedBorder: const UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color.fromARGB(255, 108, 255, 160)),
+                  borderSide:
+                      BorderSide(color: Color.fromARGB(255, 108, 255, 160)),
                 ),
               ),
             ),
@@ -165,25 +166,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       return;
     }
 
-    // (추가) SharedPreferences에 온보딩 완료 상태 저장
+    // 3) SharedPreferences에 온보딩 정보 + 완료 상태 + 탄생일 저장
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isOnboarded', true);
-    await prefs.setString('selectedCat', _selectedSpecies);
-
-    print('고양이 이름: $catName');
-    print('고양이 종: $_selectedSpecies');
 
     await prefs.setString('catName', catName);
     await prefs.setString('catSpecies', _selectedSpecies);
+    await prefs.setBool('isOnboarded', true);
+    await prefs.setString('selectedCat', _selectedSpecies);
 
-    print('Saved catName: ${prefs.getString('catName')}'); 
-    print('Saved catSpecies: ${prefs.getString('catSpecies')}');
+    // **탄생일 기록** (오늘 날짜)
+    final DateTime now = DateTime.now();
+    final String birthdayString = '${now.year}년 ${now.month}월 ${now.day}일';
+    await prefs.setString('catBirthday', birthdayString);
 
-    await prefs.setString('catImage', _catSpeciesList.firstWhere(
-      (species) => species['name'] == _selectedSpecies)['image']!);
+    print('고양이 이름: $catName');
+    print('고양이 종: $_selectedSpecies');
+    print('탄생일: $birthdayString');
 
-    // 온보딩 완료 후, 메인 화면으로 이동
-    Navigator.pushReplacementNamed(context, '/');
+    // 4) 알림창(다이얼로그) 표시
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('축하합니다🥳'),
+          content: Text('$birthdayString\n🐱$catName🐱가(이) 탄생했어요!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // 다이얼로그 닫기
+                // 이후 메인 화면으로 이동
+                Navigator.pushReplacementNamed(context, '/');
+              },
+              child: const Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showErrorMessage(String message) {
