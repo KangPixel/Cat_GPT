@@ -18,9 +18,9 @@ class UIComponents {
       valueListenable: energy,
       builder: (context, value, _) {
         final clampedValue = value.clamp(0, 100); // 0~100 범위로 강제
-        final color = clampedValue > 70
+        final color = clampedValue >= 70
             ? Colors.green // 70% 이상이면 초록
-            : (clampedValue > 30
+            : (clampedValue >= 30
                 ? Colors.yellow // 70% 미만이고 30% 이상이면 노랑
                 : Colors.red); // 그 이하면 빨강
         return Container(
@@ -60,9 +60,9 @@ class UIComponents {
       valueListenable: energy,
       builder: (context, value, _) {
         final clampedValue = value.clamp(0, 100); // 0~100 범위로 강제
-        final color = clampedValue > 70
+        final color = clampedValue >= 70
             ? Colors.green // 70% 이상이면 초록
-            : (clampedValue > 30
+            : (clampedValue >= 30
                 ? Colors.yellow // 70% 미만이고 30% 이상이면 노랑
                 : Colors.red); // 그 이하면 빨강
         return Container(
@@ -400,7 +400,7 @@ class GameScreen extends StatelessWidget {
 
           // Cat 정보 버튼 (화면 중앙 정렬)
           Align(
-            alignment: const Alignment(0, 0.6), // 화면 아래쪽 위치
+            alignment: const Alignment(0, 0.65), // 화면 아래쪽 위치
             child: GestureDetector(
               onTap: () {
                 print("Cat button pressed"); // 디버깅 용도
