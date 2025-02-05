@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:lottie/lottie.dart';
 import '../day10_stats.dart';
 import '../cat_racing_game.dart';
+import '../day10_stats.dart';
 
 class LottieCatRunner extends PositionComponent with HasGameRef<CatRacingGame> {
   final double baseSpeed;
@@ -21,7 +22,7 @@ class LottieCatRunner extends PositionComponent with HasGameRef<CatRacingGame> {
 
   late double distancePerSecond;
 
-  late LottieBuilder lottieAnimation;
+  late Widget lottieAnimation; // ✅ Lottie 애니메이션 (Widget으로 저장)
 
   LottieCatRunner({
     required this.raceDuration,
@@ -41,17 +42,41 @@ class LottieCatRunner extends PositionComponent with HasGameRef<CatRacingGame> {
     super.onLoad();
     gameRef.overlays.add(color);
 
+    // catNameMap에서 color를 기반으로 이름 가져오기
+    String catName = gameRef.catNameMap[color] ?? color;
+
+    print("✅ [Debug] $catName 초기 위치: ${position.x}");
+
     // ✅ 30초 동안 이동해야 할 거리 설정
     distancePerSecond = (gameRef.size.x - 50) / raceDuration;
 
-    // ✅ Lottie 애니메이션을 설정하고 초기화
-    lottieAnimation = Lottie.asset(
-      'assets/cat_run.json',
-      width: size.x,
-      height: size.y,
-      fit: BoxFit.cover,
-      repeat: true,
+    // ✅ 모든 고양이에 좌우 반전 적용
+    Widget lottie = Transform(
+      alignment: Alignment.center,
+      transform: Matrix4.rotationY(pi), // 🔹 좌우 반전
+      child: Lottie.asset(
+        'assets/cat_run.json',
+        width: size.x,
+        height: size.y,
+        fit: BoxFit.cover,
+        repeat: true,
+      ),
     );
+
+    // ✅ Player는 원본 사용, AI 3마리는 색상 반전 적용
+    if (catName == "Player") {
+      lottieAnimation = lottie; // 원본 적용
+    } else {
+      lottieAnimation = ColorFiltered(
+        colorFilter: const ColorFilter.matrix([
+          -1,  0,  0,  0, 255, // R 반전
+           0, -1,  0,  0, 255, // G 반전
+           0,  0, -1,  0, 255, // B 반전
+           0,  0,  0,  1,   0, // Alpha 유지
+        ]),
+        child: lottie, // 🔹 색상 반전된 Lottie 적용
+      );
+    }
 
     print("✅ [Debug] $color 초기 위치: ${position.x}");
   }
@@ -68,9 +93,15 @@ class LottieCatRunner extends PositionComponent with HasGameRef<CatRacingGame> {
     double variation = sin((elapsedTime * 2 * pi / speedFrequency) + phaseOffset) * speedVariation;
     currentSpeed = baseSpeed + variation;
 
-    // ✅ 속도 제한 (너무 빠르거나 느리지 않도록 조정)
-    currentSpeed = currentSpeed.clamp(0.1, 1.0);
+    // player에게만 보너스 속도 추가
+    if (color == 'one') { //player인지 확인
+      double bonusSpeed = day10Stats.normalizedScore * 0.1; //보너스 스코어를 속도에 반영
+      currentSpeed += bonusSpeed;
+    }
 
+    // ✅ 속도 제한 (너무 빠르거나 느리지 않도록 조정)
+    currentSpeed = currentSpeed.clamp(0.1, 1.2); //보너스 반영하여 최대 속도 증가 가능능
+ 
     // ✅ 거리 기반 이동
     position.x += currentSpeed * dt * 50;
 
@@ -84,20 +115,16 @@ class LottieCatRunner extends PositionComponent with HasGameRef<CatRacingGame> {
       gameRef.registerFinish(this);
     }
 
-    // ✅ **Lottie 애니메이션 위치를 업데이트**
+    // ✅ Lottie 애니메이션 업데이트
     gameRef.overlays.remove(color);
     gameRef.overlays.add(color);
   }
 
   Widget buildLottieOverlay(BuildContext context) {
     return Positioned(
-      left: position.x, // ✅ 고양이의 위치를 업데이트하여 반영
+      left: position.x,
       top: position.y,
-      child: Transform(
-        alignment: Alignment.center,
-        transform: Matrix4.rotationY(pi), // ✅ 좌우 반전 적용
-        child: lottieAnimation, // ✅ 기존 Lottie 애니메이션 사용
-      ),
+      child: lottieAnimation, // ✅ 반전된 Lottie 적용
     );
   }
 }
