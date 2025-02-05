@@ -1,3 +1,4 @@
+//packages/ski_master/lib/game/routes/gameplay.dart
 import 'dart:async';
 import 'dart:ui';
 
@@ -22,18 +23,22 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
     required this.onPausePressed,
     required this.onLevelCompleted,
     required this.onGameOver,
-  });
+    int? initialScore,
+  }) : _score = initialScore ?? 0; // 생성자 초기화 리스트 형태로 수정
+
+  int clearCount = 0;
 
   static const id = 'Gameplay';
   static const _timeScaleRate = 1;
   static const _bgmFadeRate = 1;
   static const _bgmMinVol = 0;
-  static const _bgmMaxVol = 0.6;
 
   final int currentLevel;
   final VoidCallback onPausePressed;
   final ValueChanged<int> onLevelCompleted;
   final VoidCallback onGameOver;
+  int _score; // var나 final 없이 선언된 변수를 수정
+  int get score => _score;
 
   late final input = Input(
     keyCallbacks: {
@@ -60,10 +65,6 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
   int _nSnowmanCollected = 0;
   int _nLives = 3;
 
-  late int _star1;
-  late int _star2;
-  late int _star3;
-
   int _nTrailTriggers = 0;
   bool get _isOffTrail => _nTrailTriggers == 0;
 
@@ -72,10 +73,35 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
 
   AudioPlayer? _bgmPlayer;
 
+  void _finishGame({
+    required bool isGameOver,
+    int additionalFatigue = 0,
+  }) {
+    if (_bgmPlayer != null) {
+      _bgmPlayer?.stop();
+      _bgmPlayer?.dispose();
+      _bgmPlayer = null;
+    }
+
+    if (game.buildContext != null) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        Navigator.of(game.buildContext!).pop({
+          'score': _score,
+          'levelCompleted': !isGameOver,
+          'gameOver': isGameOver,
+          'additionalFatigue': additionalFatigue,
+        });
+      });
+    }
+  }
+
   @override
   Future<void> onLoad() async {
     if (game.musicValueNotifier.value) {
-      _bgmPlayer = await FlameAudio.loopLongAudio(SkiMasterGame.bgm, volume: 0);
+      _bgmPlayer = await FlameAudio.loopLongAudio(
+        SkiMasterGame.bgm,
+        volume: game.musicVolumeNotifier.value,
+      );
     }
 
     final map = await TiledComponent.load(
@@ -85,10 +111,6 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
 
     final tiles = game.images.fromCache('../images/tilemap_packed.png');
     _spriteSheet = SpriteSheet(image: tiles, srcSize: Vector2.all(16));
-
-    _star1 = map.tileMap.map.properties.getValue<int>('Star1')!;
-    _star2 = map.tileMap.map.properties.getValue<int>('Star2')!;
-    _star3 = map.tileMap.map.properties.getValue<int>('Star3')!;
 
     await _setupWorldAndCamera(map);
     await _handleSpawnPoints(map);
@@ -107,6 +129,7 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
       input: SkiMasterGame.isMobile ? input : null,
       onPausePressed: SkiMasterGame.isMobile ? onPausePressed : null,
     );
+    _hud.updateScore(_score);
 
     await _camera.viewport.addAll([_fader, _hud]);
     await _camera.viewfinder.add(_cameraShake);
@@ -144,16 +167,17 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
     }
 
     if (_bgmPlayer != null) {
-      if (_levelCompleted) {
+      if (_levelCompleted || _gameOver) {
         if (_bgmPlayer!.volume > _bgmMinVol) {
           _bgmPlayer!.setVolume(
             lerpDouble(_bgmPlayer!.volume, _bgmMinVol, _bgmFadeRate * dt)!,
           );
         }
       } else {
-        if (_bgmPlayer!.volume < _bgmMaxVol) {
+        if (_bgmPlayer!.volume < game.musicVolumeNotifier.value) {
           _bgmPlayer!.setVolume(
-            lerpDouble(_bgmPlayer!.volume, _bgmMaxVol, _bgmFadeRate * dt)!,
+            lerpDouble(_bgmPlayer!.volume, game.musicVolumeNotifier.value,
+                _bgmFadeRate * dt)!,
           );
         }
       }
@@ -162,7 +186,11 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
 
   @override
   void onRemove() {
-    _bgmPlayer?.dispose();
+    if (_bgmPlayer != null) {
+      _bgmPlayer?.stop();
+      _bgmPlayer?.dispose();
+      _bgmPlayer = null;
+    }
     super.onRemove();
   }
 
@@ -182,6 +210,9 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
     await add(_camera);
   }
 
+  late double _initialX;
+  late double _initialY;
+
   Future<void> _handleSpawnPoints(TiledComponent map) async {
     final spawnPointLayer = map.tileMap.getLayer<ObjectGroup>('SpawnPoint');
     final objects = spawnPointLayer?.objects;
@@ -190,16 +221,18 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
       for (final object in objects) {
         switch (object.class_) {
           case 'Player':
+            _initialX = object.x;
+            _initialY = object.y;
             _player = Player(
-              position: Vector2(object.x, object.y),
+              position: Vector2(_initialX, _initialY),
               sprite: _spriteSheet.getSprite(5, 10),
               priority: 1,
             );
             await _world.add(_player);
             _camera.follow(_player);
-            _lastSafePosition = Vector2(object.x, object.y);
+            _lastSafePosition = Vector2(_initialX, _initialY);
             break;
-          case 'Snowman':
+          case 'Snowman': // 눈사람 생성 부분 추가
             final snowman = Snowman(
               position: Vector2(object.x, object.y),
               sprite: _spriteSheet.getSprite(5, 9),
@@ -305,9 +338,13 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
 
   void _onRamp() {
     final jumpFactor = _player.jump();
+    final jumpScore = (jumpFactor * 500).toInt();
+    _score += jumpScore;
+    _hud.updateScore(_score);
+    game.updateScore(_score);
+
     final jumpScale = lerpDouble(1, 1.08, jumpFactor)!;
     final jumpDuration = lerpDouble(0, 0.8, jumpFactor)!;
-
     _camera.viewfinder.add(
       ScaleEffect.by(
         Vector2.all(jumpScale),
@@ -329,21 +366,40 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
     _fader.add(OpacityEffect.fadeIn(LinearEffectController(1.5)));
     input.active = false;
     _levelCompleted = true;
+    clearCount++; // _clearCount -> clearCount
 
-    if (_nSnowmanCollected >= _star3) {
-      onLevelCompleted.call(3);
-    } else if (_nSnowmanCollected >= _star2) {
-      onLevelCompleted.call(2);
-    } else if (_nSnowmanCollected >= _star1) {
-      onLevelCompleted.call(1);
-    } else {
-      onLevelCompleted.call(0);
-    }
+    int stars;
+    if (_score >= 5000)
+      stars = 3;
+    else if (_score >= 3000)
+      stars = 2;
+    else if (_score >= 1000)
+      stars = 1;
+    else
+      stars = 0;
+
+    onLevelCompleted.call(stars);
+    // 여기서는 정산으로 바로 가지 않고 별점 화면만 표시
+  }
+
+  // 정산 처리를 위한 새로운 메서드
+  void handleSettle({required bool isGameOver}) {
+    _finishGame(isGameOver: isGameOver);
+  }
+
+// retry 처리 수정
+  void handleRetry() {
+    _finishGame(
+        isGameOver: false, additionalFatigue: clearCount * 5 // 클리어 횟수만큼 피로도 추가
+        );
   }
 
   void _onSnowmanCollected() {
     ++_nSnowmanCollected;
+    _score += 1000;
     _hud.updateSnowmanCount(_nSnowmanCollected);
+    _hud.updateScore(_score);
+    game.updateScore(_score);
   }
 
   void _resetPlayer() {
@@ -351,11 +407,12 @@ class Gameplay extends Component with HasGameReference<SkiMasterGame> {
     _hud.updateLifeCount(_nLives);
 
     if (_nLives > 0) {
-      _player.resetTo(_lastSafePosition);
+      _player.resetTo(Vector2(_initialX, _initialY));
     } else {
       _gameOver = true;
       _fader.add(OpacityEffect.fadeIn(LinearEffectController(1.5)));
       onGameOver.call();
+      // 바로 정산하지 않고 RetryMenu로 이동
     }
   }
 }
