@@ -1,3 +1,4 @@
+//packages/ski_master/lib/game/game.dart
 import 'dart:async';
 
 import 'package:flame/components.dart';
@@ -23,6 +24,16 @@ class SkiMasterGame extends FlameGame
 
   final musicValueNotifier = ValueNotifier(true);
   final sfxValueNotifier = ValueNotifier(true);
+  final musicVolumeNotifier = ValueNotifier(0.1); // 10%로 수정
+
+  AudioPlayer? _bgmPlayer;
+
+  // 점수 관련 변수 추가
+  int _currentScore = 0;
+  int get currentScore => _currentScore;
+  void updateScore(int score) {
+    _currentScore = score;
+  }
 
   static const isMobile = bool.fromEnvironment('MOBILE_BUILD');
 
@@ -37,8 +48,13 @@ class SkiMasterGame extends FlameGame
       (context, game) => Settings(
         musicValueListenable: musicValueNotifier,
         sfxValueListenable: sfxValueNotifier,
+        musicVolumeListenable: musicVolumeNotifier,
         onMusicValueChanged: (value) => musicValueNotifier.value = value,
         onSfxValueChanged: (value) => sfxValueNotifier.value = value,
+        onMusicVolumeChanged: (value) {
+          musicVolumeNotifier.value = value;
+          _bgmPlayer?.setVolume(value);
+        },
         onBackPressed: _popRoute,
       ),
     ),
@@ -57,20 +73,27 @@ class SkiMasterGame extends FlameGame
     ),
     RetryMenu.id: OverlayRoute(
       (context, game) => RetryMenu(
+        currentScore: _currentScore,
         onRetryPressed: _restartLevel,
-        onExitPressed: _exitToMainMenu,
+        onSettlePressed: () => _settleGame(isGameOver: true),
       ),
     ),
   };
 
   late final _routeFactories = <String, Route Function(String)>{
     LevelComplete.id: (argument) => OverlayRoute(
-          (context, game) => LevelComplete(
-            nStars: int.parse(argument),
-            onNextPressed: _startNextLevel,
-            onRetryPressed: _restartLevel,
-            onExitPressed: _exitToMainMenu,
-          ),
+          (context, game) {
+            final args = argument.split('/');
+            return LevelComplete(
+              nStars: int.parse(args[0]),
+              currentLevel: int.parse(args[1]),
+              currentScore: _currentScore,
+              clearCount: int.parse(args[2]),
+              onNextPressed: _startNextLevel,
+              onRetryPressed: _restartLevel,
+              onSettlePressed: () => _settleGame(isGameOver: false),
+            );
+          },
         ),
   };
 
@@ -85,8 +108,10 @@ class SkiMasterGame extends FlameGame
 
   @override
   Future<void> onLoad() async {
-    await Flame.device.setPortrait();
-    await Flame.device.fullScreen();
+    if (isMobile) {
+      await Flame.device.setPortrait();
+      await Flame.device.fullScreen();
+    }
     await FlameAudio.audioCache.loadAll([bgm, jumpSfx, collectSfx, hurtSfx]);
     await add(_router);
   }
@@ -99,7 +124,7 @@ class SkiMasterGame extends FlameGame
     _router.pop();
   }
 
-  void _startLevel(int levelIndex) {
+  void _startLevel(int levelIndex, {int? initialScore}) {
     _router.pop();
     _router.pushReplacement(
       Route(
@@ -109,6 +134,7 @@ class SkiMasterGame extends FlameGame
           onLevelCompleted: _showLevelCompleteMenu,
           onGameOver: _showRetryMenu,
           key: ComponentKey.named(Gameplay.id),
+          initialScore: initialScore,
         ),
       ),
       name: Gameplay.id,
@@ -128,7 +154,9 @@ class SkiMasterGame extends FlameGame
     final gameplay = findByKeyName<Gameplay>(Gameplay.id);
 
     if (gameplay != null) {
-      _startLevel(gameplay.currentLevel + 1);
+      final currentScore = gameplay.score; // 현재 점수 가져오기
+      _startLevel(gameplay.currentLevel + 1,
+          initialScore: currentScore); // 새 레벨에 점수 전달
     }
   }
 
@@ -148,10 +176,29 @@ class SkiMasterGame extends FlameGame
   }
 
   void _showLevelCompleteMenu(int nStars) {
-    _router.pushNamed('${LevelComplete.id}/$nStars');
+    final gameplay = findByKeyName<Gameplay>(Gameplay.id);
+    if (gameplay != null) {
+      _router.pushNamed(
+          '${LevelComplete.id}/$nStars/${gameplay.currentLevel}/${gameplay.clearCount}');
+    }
   }
 
   void _showRetryMenu() {
     _router.pushNamed(RetryMenu.id);
+  }
+
+  // 점수 정산을 위한 메서드 추가
+  void _settleGame({required bool isGameOver}) {
+    final gameplay = findByKeyName<Gameplay>(Gameplay.id);
+    if (gameplay != null) {
+      gameplay.handleSettle(isGameOver: isGameOver);
+    }
+  }
+
+  @override
+  void onRemove() {
+    _bgmPlayer?.stop();
+    _bgmPlayer?.dispose();
+    super.onRemove();
   }
 }

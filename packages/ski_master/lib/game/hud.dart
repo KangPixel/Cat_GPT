@@ -1,3 +1,4 @@
+//packages/ski_master/lib/game/hud.dart
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
@@ -39,7 +40,7 @@ class Hud extends PositionComponent with ParentIsA<Viewport>, HasGameReference {
   );
 
   final _score = TextComponent(
-    text: 'x0',
+    text: '0', // 초기값
     anchor: Anchor.centerLeft,
     textRenderer: TextPaint(
       style: const TextStyle(
@@ -48,6 +49,10 @@ class Hud extends PositionComponent with ParentIsA<Viewport>, HasGameReference {
       ),
     ),
   );
+
+  void updateScore(int score) {
+    _score.text = score.toString();
+  }
 
   final SpriteComponent _player;
   final SpriteComponent _snowman;

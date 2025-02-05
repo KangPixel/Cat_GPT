@@ -1,16 +1,19 @@
+//packages/ski_master/lib/game/routes/retry_menu.dart
 import 'package:flutter/material.dart';
 
 class RetryMenu extends StatelessWidget {
   const RetryMenu({
     super.key,
+    required this.currentScore,
     this.onRetryPressed,
-    this.onExitPressed,
+    this.onSettlePressed,
   });
 
   static const id = 'RetryMenu';
 
+  final int currentScore;
   final VoidCallback? onRetryPressed;
-  final VoidCallback? onExitPressed;
+  final VoidCallback? onSettlePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +28,11 @@ class RetryMenu extends StatelessWidget {
               style: TextStyle(fontSize: 30),
             ),
             const SizedBox(height: 15),
+            Text(
+              'Score: $currentScore',
+              style: const TextStyle(fontSize: 24),
+            ),
+            const SizedBox(height: 15),
             SizedBox(
               width: 150,
               child: OutlinedButton(
@@ -36,8 +44,11 @@ class RetryMenu extends StatelessWidget {
             SizedBox(
               width: 150,
               child: OutlinedButton(
-                onPressed: onExitPressed,
-                child: const Text('Exit'),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.green.withOpacity(0.2),
+                ),
+                onPressed: onSettlePressed,
+                child: const Text('정산하기'),
               ),
             ),
           ],

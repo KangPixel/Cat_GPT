@@ -15,6 +15,7 @@ import 'package:ski_master/game/game.dart';
 import 'package:flutter_suika_game/src/suika_manager.dart';
 import 'package:flutter_suika_game/domain/game_state.dart';
 import 'package:flutter_suika_game/presenter/score_presenter.dart';
+import 'package:ski_master/game/routes/gameplay.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({Key? key}) : super(key: key);
@@ -153,7 +154,7 @@ class _PlayScreenState extends State<PlayScreen> {
                       'Ski',
                       'assets/images/ski.png',
                       () {
-                        Navigator.push(
+                        Navigator.push<Map<String, dynamic>>(
                           context,
                           MaterialPageRoute(
                             builder: (context) => _buildGameScreen(
@@ -162,7 +163,27 @@ class _PlayScreenState extends State<PlayScreen> {
                               'Ski Master',
                             ),
                           ),
-                        );
+                        ).then((resultMap) {
+                          if (resultMap != null) {
+                            // 게임 종료 상태에 따른 점수 처리
+                            final score = resultMap['score'] as int;
+                            final isGameOver = resultMap['gameOver'] as bool;
+                            final levelCompleted =
+                                resultMap['levelCompleted'] as bool;
+
+                            // 게임이 정상적으로 끝났을 때만 결과 처리
+                            if (isGameOver || levelCompleted) {
+                              final result = MiniGameResult(
+                                gameName: 'Ski Master',
+                                totalScore: score,
+                                fatigueIncrease: 5,
+                                pointsEarned: score ~/ 100,
+                              );
+                              miniGameManager.processGameResult(
+                                  context, result);
+                            }
+                          }
+                        });
                       },
                     ),
 
@@ -404,8 +425,25 @@ class _PlayScreenState extends State<PlayScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              // Jump Rope는 결과를 MiniGameResult로 pop
-              if (title == 'Jump Rope') {
+              if (title == 'Ski Master') {
+                if (game is SkiMasterGame) {
+                  final gameplay = game.findByKeyName<Gameplay>(Gameplay.id);
+                  if (gameplay != null) {
+                    gameplay.handleSettle(isGameOver: false); // 게임 정리 (BGM 등)
+
+                    // 약간의 딜레이 후 결과 반환 및 Navigator.pop
+                    Future.delayed(const Duration(milliseconds: 500), () {
+                      final resultMap = {
+                        'score': gameplay.score,
+                        'gameOver': false,
+                        'levelCompleted': false,
+                        'additionalFatigue': 5,
+                      };
+                      Navigator.of(context).pop(resultMap);
+                    });
+                  }
+                }
+              } else if (title == 'Jump Rope') {
                 final mgr = jump_rope.jumpRopeManager;
                 final result = MiniGameResult(
                   gameName: 'Jump Rope',

@@ -33,7 +33,7 @@ if not api_key:
 
 # LLM 초기화
 main_llm = ChatOpenAI(
-    model_name="gpt-4o-mini",
+    model_name="gpt-4o",
     temperature=0.7,
     max_tokens=1500,
 )
@@ -108,7 +108,6 @@ rag_prompt = ChatPromptTemplate.from_template(
 <고양이같은 반응>
 - 까다롭고 변덕스러운 성격이 기본, 단 완전히 예측 불가능하진 않음
 - 조심스럽고 다정하게 천천히 관심을 가져주면 마음을 조금씩 연다
-- 때로는 관심을 끌기 위해 일부러 시크한 태도를 보이기도 함
 - 자존심이 매우 센 편
 
 {{
@@ -123,14 +122,14 @@ rag_prompt = ChatPromptTemplate.from_template(
 }}
 
 다음 가이드라인을 따라주세요:
-1. <컨텍스트>의 성격과 행동 패턴을 반영해 일관성 있게 대응하세요
-2. <친밀도> 범위에 따라 (낮음: 1-3, 중간: 4-7, 높음: 8-10) 고양이의 말투와 태도가 달라짐.
-3. 현재 <친밀도>와 <컨택스트>를 반영하여 맞는 말투와 태도를 보여주세요  
-4. 현재 <친밀도>와 <컨택스트>가 고양이의 감정과 행동을 결정합니다.
+1. 비슷한 행동, 대화를 반복하는건 최대한 피하세요.
+2. 사용자가 비슷한 내용의 제안을 반복하면 그 내용에 맞게 고양이가 부정적인 반응을한다.(EX: 먹자는 내용이면 배불러요)
+3. <친밀도> 범위에 따라 (낮음: 1-3, 중간: 4-7, 높음: 8-10) 고양이의 행동과 대화의 태도가 달라짐.
+4. 현재 <친밀도>와 <컨택스트>를 참고하여 맞는 행동과 대화를 해주세요.  
 5. <이전 대화>를 참고해 문맥에 맞는 대화를 이어가세요
-6. 동일한 대화가 반복된다면 고양이의 반응이 점점 변하도록 설정하고, 친밀도 변화가 제한될 수 있음.
+6. 대화의 내용을 분석해 친밀도 변화를 ~2 부터 ~+2 사이로 정하세요. 변화가 없을시엔 0입니다.
 
-응답은 반드시 다음 JSON 형식을 따라주세요(JSON키 이름 무조건 지키기):
+응답은 반드시 다음 JSON 형식을 따라주세요(JSON키 이름 무조건 지키기. JSON이 아닌 다른 텍스트, 마크다운, 혹은 백틱(`)은 절대 포함하지 마세요.):
 {{
     "response": "실제 고양이 대사와 행동",
     "status_change": {{
@@ -215,14 +214,27 @@ def validate_input(user_input: str) -> bool:
 def extract_status_change(response: str) -> int:
     """응답에서 상태 변화량 추출"""
     try:
-        response_json = json.loads(response)
+        if not response or not response.strip():  # 빈 값 방어 처리
+            logger.error("Received empty response for status change extraction")
+            return 0
+
+        response_json = json.loads(response)  # JSON 변환 시도
         intimacy_change = response_json.get("status_change", {}).get("intimacy", 0)
-        if isinstance(intimacy_change, str):
-            intimacy_change = int(intimacy_change.strip())
+
+        if isinstance(intimacy_change, str):  # 문자열이면 정수 변환
+            intimacy_change = int(
+                intimacy_change.replace("+", "").strip()
+            )  # 부호 제거 후 변환
+
         return intimacy_change
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error: {e}")
+    except ValueError as e:
+        logger.error(f"Value conversion error: {e}")
     except Exception as e:
-        logger.error(f"Status change extraction error: {e}")
-        return 0
+        logger.error(f"Unexpected error in status change extraction: {e}")
+
+    return 0  # 오류 발생 시 기본값 반환
 
 
 @app.route("/chat", methods=["POST"])
