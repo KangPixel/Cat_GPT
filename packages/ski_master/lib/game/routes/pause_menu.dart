@@ -1,3 +1,4 @@
+//packages/ski_master/lib/game/routes/pause_menu.dart
 import 'package:flutter/material.dart';
 
 class PauseMenu extends StatelessWidget {

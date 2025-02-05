@@ -1,3 +1,4 @@
+//packages/ski_master/lib/game/routes/settings.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -6,8 +7,10 @@ class Settings extends StatelessWidget {
     super.key,
     required this.musicValueListenable,
     required this.sfxValueListenable,
+    required this.musicVolumeListenable,
     this.onMusicValueChanged,
     this.onSfxValueChanged,
+    this.onMusicVolumeChanged,
     this.onBackPressed,
   });
 
@@ -15,11 +18,11 @@ class Settings extends StatelessWidget {
 
   final ValueListenable<bool> musicValueListenable;
   final ValueListenable<bool> sfxValueListenable;
-
+  final ValueListenable<double> musicVolumeListenable;
   final ValueChanged<bool>? onMusicValueChanged;
   final ValueChanged<bool>? onSfxValueChanged;
+  final ValueChanged<double>? onMusicVolumeChanged;
   final VoidCallback? onBackPressed;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,6 +48,27 @@ class Settings extends StatelessWidget {
                 },
                 child: const Text('Music'),
               ),
+            ),
+            ValueListenableBuilder<bool>(
+              valueListenable: musicValueListenable,
+              builder: (context, musicEnabled, _) {
+                return ValueListenableBuilder<double>(
+                  valueListenable: musicVolumeListenable,
+                  builder: (context, volume, _) {
+                    return SizedBox(
+                      width: 200,
+                      child: Slider(
+                        value: volume,
+                        min: 0.0,
+                        max: 1.0,
+                        divisions: 10,
+                        label: '${(volume * 100).round()}%',
+                        onChanged: musicEnabled ? onMusicVolumeChanged : null,
+                      ),
+                    );
+                  },
+                );
+              },
             ),
             const SizedBox(height: 5),
             SizedBox(

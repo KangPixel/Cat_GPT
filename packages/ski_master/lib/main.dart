@@ -1,3 +1,4 @@
+//packages/ski_master/lib/main.dart
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:ski_master/game/game.dart';

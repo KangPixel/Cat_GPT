@@ -54,9 +54,10 @@ flutter:
     - assets/images/pixel_cat.png
     - assets/images/fish.png
     - assets/images/cat/
+    - assets/audio/
+    - assets/tiles/
     - assets/images/space_background.png
     - assets/images/nightcap.png
-
     - assets/images/
 
   fonts:

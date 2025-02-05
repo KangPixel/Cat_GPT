@@ -1,3 +1,4 @@
+//packages/ski_master/lib/game/routes/level_selection.dart
 import 'package:flutter/material.dart';
 import 'package:ski_master/game/game.dart';
 
@@ -39,7 +40,7 @@ class LevelSelection extends StatelessWidget {
                     child: Text('Level ${index + 1}'),
                   );
                 },
-                itemCount: 6,
+                itemCount: 3,
                 shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(horizontal: 100),
               ),
