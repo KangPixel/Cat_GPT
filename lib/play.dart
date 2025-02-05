@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// 본 게임(메인) 상태들
+// ✅ 스탯 관련 임포트
 import 'status.dart';
 import 'day10_stats.dart';
 import 'mini_game_manager.dart';
@@ -12,8 +12,11 @@ import 'package:flame/game.dart';
 // 다른 게임들
 import 'package:flutter_blackjack_pkg/view/bj_game.dart';
 import 'package:flutter_blackjack_pkg/services/blackjack_manager.dart';
+import 'package:flutter_blackjack_pkg/services/game_service_impl.dart';
 import 'package:flutter_suika_game/ui/main_game.dart';
 import 'package:ski_master/game/game.dart';
+
+
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({Key? key}) : super(key: key);
@@ -23,10 +26,7 @@ class PlayScreen extends StatefulWidget {
 }
 
 class _PlayScreenState extends State<PlayScreen> {
-  @override
-  void initState() {
-    super.initState();
-  }
+  static GameServiceImpl? _gameService;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +46,7 @@ class _PlayScreenState extends State<PlayScreen> {
         }
 
         return Scaffold(
+          backgroundColor: Colors.cyan[50], // 전체 배경색
           appBar: AppBar(
             title: const Text('Play'),
             actions: [
@@ -67,6 +68,10 @@ class _PlayScreenState extends State<PlayScreen> {
           ),
           body: Column(
             children: [
+              // ✅ 스탯 UI (막대바 추가)
+              _buildStatsBar(),
+
+              const SizedBox(height: 20),
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,
@@ -74,7 +79,7 @@ class _PlayScreenState extends State<PlayScreen> {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   children: [
-                    _buildGameCard('Jump Rope', 'assets/jump_rope.png', () {
+                    _buildGameCard('JUMP ROPE', 'assets/images/jump_rope.png', () {
                       jump_rope.jumpRopeManager.startNewSession();
                       Navigator.push<MiniGameResult>(
                         context,
@@ -91,7 +96,8 @@ class _PlayScreenState extends State<PlayScreen> {
                         }
                       });
                     }),
-                    _buildGameCard('Ski', 'assets/ski.png', () {
+
+                    _buildGameCard('SKI', 'assets/images/ski.png', () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -103,30 +109,47 @@ class _PlayScreenState extends State<PlayScreen> {
                         ),
                       );
                     }),
-                    _buildGameCard('Blackjack', 'assets/blackjack.png', () {
-                      final currentWallet = 10000;
-                      blackjackManager.startNewSession(currentWallet);
+
+                    _buildGameCard('BLACKJACK', 'assets/images/blackjack.png', () {
+                      if (!mounted) return;
+
+                      if (!blackjackManager.sessionStarted) {
+                        blackjackManager.startNewSession(10000);
+                        _gameService = GameServiceImpl();
+                      }
+
                       Navigator.push<int>(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const BlackJackGame(),
+                          builder: (context) =>
+                              BlackJackGame(gameService: _gameService!),
                         ),
                       ).then((finalWallet) {
-                        if (finalWallet != null) {
-                          final moneyDiff = blackjackManager.getMoneyDifference(finalWallet);
+                        if (!mounted) return;
+
+                        if (finalWallet == null) {
+                          return;
+                        }
+
+                        final moneyDiff = blackjackManager.getMoneyDifference(finalWallet);
+
+                        if (moneyDiff != 0) {
+                          _gameService = null;
+                          blackjackManager.endSession();
                           final result = MiniGameResult(
                             gameName: 'Blackjack',
                             totalScore: moneyDiff,
                             fatigueIncrease: (moneyDiff < 0) ? 10 : 5,
                             pointsEarned: (moneyDiff > 0) ? (moneyDiff ~/ 1000) : 0,
-                            fatigueMessage: moneyDiff < 0 ? '(돈을 잃었어요.)' : null,
+                            fatigueMessage: moneyDiff < 0 ? "(돈을 잃었어요.)" : null,
                           );
+
                           miniGameManager.processGameResult(context, result);
                         }
-                        blackjackManager.endSession();
                       });
                     }),
-                    _buildGameCard('Watermelon Game', 'assets/watermelon.png', () {
+
+                    _buildGameCard('WATERMELON GAME', 'assets/images/watermelon.png', () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -148,40 +171,93 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
-  Widget _buildGameCard(String title, String imagePath, VoidCallback onTap) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          width: 150,
-          height: 160,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 8), //상단 여백 추가
-              Expanded( // 이미지가 카드 크기에 맞게 확장됨
-                child: Image.asset(
-                imagePath,
-                height: double.infinity, // 높이를 카드 크기에 맞춤춤
-                width: double.infinity, // 너비를 카드 크기에 맞춤춤
-                fit: BoxFit.contain, //이미지가 카드 안에서 크기 맞춰짐짐
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.games, size: 100);
-                },
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(title, style: const TextStyle(fontSize: 16)),
-            ],
-          ),
-        ),
+  // ✅ 🔥 스탯을 막대바로 표시하는 위젯
+  Widget _buildStatsBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.transparent, // 컨테이너 투명하게
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildStatRow('SPEED     ', day10Stats.speed, Colors.blue),
+          _buildStatRow('BURST     ', day10Stats.burst, Colors.red),
+          _buildStatRow('STAMINA', day10Stats.stamina, Colors.green),
+        ],
       ),
     );
   }
 
+  // ✅ 🔹 각 스탯을 막대바로 표현하는 위젯 (오류 수정됨!)
+  Widget _buildStatRow(String label, ValueNotifier<int> stat, Color color) {
+    return ValueListenableBuilder<int>(
+      valueListenable: stat,
+      builder: (context, value, _) {
+        return Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: LinearProgressIndicator(
+                  value: value / 100.0,
+                  backgroundColor: Colors.grey[300],
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                  minHeight: 12,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildGameCard(String title, String imagePath, VoidCallback onTap) {
+    return Card(
+      color: Colors.transparent,
+      elevation: 0, // ✅ 그림자 투명명
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                imagePath,
+                width: 180,
+                height: 180,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.games, size: 200);
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
   Widget _buildGameScreen(BuildContext context, FlameGame game, String title) {
+    final focusNode = FocusNode();
+
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
@@ -191,8 +267,7 @@ class _PlayScreenState extends State<PlayScreen> {
         ),
       ),
       body: SafeArea(
-        child: GameWidget(game: game),
+        child: GameWidget(game: game, focusNode: focusNode),
       ),
     );
   }
-}
