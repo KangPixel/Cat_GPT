@@ -181,7 +181,7 @@ class _SleepTransitionOverlayState extends State<SleepTransitionOverlay> with Si
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       // 고양이 이미지의 크기 설정
-                      final catSize = constraints.maxWidth * 0.4; // 화면 너비의 40%
+                      final catSize = constraints.maxWidth * 0.6; // 화면 너비의 60%
                       
                       return Stack(
                         clipBehavior: Clip.none,
@@ -198,11 +198,11 @@ class _SleepTransitionOverlayState extends State<SleepTransitionOverlay> with Si
                           
                           // Nightcap Image
                           Positioned(
-                            top: -(catSize * 0.41), // 고양이 크기의 25% 만큼 위로
-                            left: catSize * 0.22,   // 고양이 크기의 15% 만큼 왼쪽으로
+                            top: -(catSize * 0.24), // 고양이 크기의 24% 만큼 위로
+                            left: catSize * 0.33,   // 고양이 크기의 33% 만큼 왼쪽으로
                             child: SizedBox(
-                              width: catSize * 0.7,  // 고양이 크기의 70%
-                              height: catSize * 0.7,
+                              width: catSize * 0.4,  // 고양이 크기의 40%
+                              height: catSize * 0.4,
                               child: Image.asset(
                                 'assets/images/nightcap.png',
                                 fit: BoxFit.contain,
