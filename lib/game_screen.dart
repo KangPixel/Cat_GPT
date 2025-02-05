@@ -9,6 +9,7 @@ import 'eatsleep.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'copyright.dart';
 import 'game_manual.dart';
+// import 'speech_bubble.dart';
 
 // UI 구성 요소들을 제공하는 클래스
 class UIComponents {
@@ -174,6 +175,7 @@ void showCatProfilePopup(BuildContext context) async {
           final prefs = snapshot.data!;
           final catName = prefs.getString('catName') ?? '이름 없음';
           final catSpecies = prefs.getString('catSpecies') ?? '품종 없음';
+          final catBirthday = prefs.getString('catBirthday') ?? '2025년 02월 05일';
 
           // SharedPreferences에서 선택한 고양이 종 가져오기
           String selectedCat = prefs.getString('selectedCat') ?? '회냥이'; // 기본값
@@ -231,8 +233,8 @@ void showCatProfilePopup(BuildContext context) async {
                                 fontSize: 14, color: Colors.grey),
                           ),
                           const SizedBox(height: 4.0),
-                          const Text(
-                            '생일: 2023-01-01', // 고정값 (나중에 수정 가능)
+                          Text(
+                            '생일: $catBirthday', // 고정값 (나중에 수정 가능)
                             style: TextStyle(fontSize: 14, color: Colors.grey),
                           ),
                         ],
@@ -396,6 +398,12 @@ class GameScreen extends StatelessWidget {
                 );
               },
             ),
+          ),
+
+          Positioned(
+            top: 200, // 말풍선을 고양이 위로 올림
+            right: 60,
+            child: SpeechBubble(text: "나랑 대화하쟈냥¢"), // 원하는 텍스트 넣기
           ),
 
           // Cat 정보 버튼 (화면 중앙 정렬)

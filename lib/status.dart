@@ -4,7 +4,7 @@ import 'package:flame/components.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CatStatus {
-  ValueNotifier<int> intimacy = ValueNotifier<int>(1); // 초기값 1
+  ValueNotifier<int> intimacy = ValueNotifier<int>(5); // 초기값 1
   ValueNotifier<int> energy = ValueNotifier<int>(40); // 초기값 40
   ValueNotifier<int> fatigue = ValueNotifier<int>(0);
   ValueNotifier<String> catName = ValueNotifier<String>(''); // catName 추가

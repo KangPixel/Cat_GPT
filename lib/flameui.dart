@@ -172,6 +172,75 @@ class CalendarComponent extends PositionComponent {
   }
 }
 
+// 말풍선
+class SpeechBubble extends StatelessWidget {
+  final String text;
+
+  const SpeechBubble({super.key, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(25), // 더 둥글게 수정
+            border: Border.all(
+              color: const Color(0xFFFF929E), // 분홍색으로 변경
+              width: 3, // 테두리 두께 증가
+            ),
+          ),
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Positioned(
+          bottom: -15, // 꼬리 위치 약간 조정
+          left: 20,
+          child: CustomPaint(
+            size: const Size(20, 15), // 꼬리 크기 조정
+            painter: SpeechBubbleTail(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class SpeechBubbleTail extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+
+    canvas.drawPath(path, paint);
+
+    // 테두리 그리기
+    final borderPaint = Paint()
+      ..color = const Color(0xFFFF929E) // 분홍색으로 변경
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3 // 테두리 두께 증가
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawPath(path, borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
 class FlameGameScreen extends StatelessWidget {
   final CatGame game = CatGame();
 
