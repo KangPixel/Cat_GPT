@@ -56,4 +56,6 @@ flutter:
     - assets/images/cat/
     - assets/audio/
     - assets/tiles/
+    - assets/images/space_background.png
+    - assets/images/nightcap.png
     - assets/images/

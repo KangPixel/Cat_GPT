@@ -1,7 +1,8 @@
 // onboarding.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'status.dart'; // 추가
+import 'status.dart'; // catStatus
+import 'dart:async';
 
 class OnboardingScreen extends StatefulWidget {
   static const routeName = '/onboarding';
@@ -18,7 +19,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // 현재 선택된 고양이 종(이름)
   String _selectedSpecies = ''; // 기본값 ''이면 아직 미선택 상태
 
-  // 고양이 종(이름 + 이미지) 리스트
+  // 고양이 종(이름 + 이미지) 리스트 (UI용)
   final List<Map<String, String>> _catSpeciesList = [
     {'name': '회냥이', 'image': 'assets/images/cat/gray_cat.png'},
     {'name': '흰냥이', 'image': 'assets/images/cat/white_cat.png'},
@@ -153,7 +154,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   /// "시작하기" 버튼 누를 때
-  void _onStartPressed() async {
+  Future<void> _onStartPressed() async {
     // 1) 고양이 이름 1~7자 검사
     final catName = _catNameController.text.trim();
     if (catName.isEmpty || catName.length < 1 || catName.length > 7) {
@@ -167,36 +168,48 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       return;
     }
 
-    // 3) SharedPreferences에 온보딩 정보 + 완료 상태 + 탄생일 저장
+    // (A) 맵핑: "회냥이" -> "gray_cat"
+    final catImages = {
+      '회냥이': 'gray_cat',
+      '흰냥이': 'white_cat',
+      '갈냥이': 'brown_cat',
+      '아이보리냥이': 'ivory_cat',
+    };
+
+    // (B) 선택된 종 -> 파일명
+    final catFileName = catImages[_selectedSpecies] ?? 'gray_cat';
+
+    // (C) SharedPreferences에 저장
     final prefs = await SharedPreferences.getInstance();
-
+    // 고양이 이름, 종
     await prefs.setString('catName', catName);
-    catStatus.catName.value = catName; // 추가;
     await prefs.setString('catSpecies', _selectedSpecies);
-    await prefs.setBool('isOnboarded', true);
-    await prefs.setString('selectedCat', _selectedSpecies);
 
-    // **탄생일 기록** (오늘 날짜)
-    final DateTime now = DateTime.now();
-    final String birthdayString = '${now.year}년 ${now.month}월 ${now.day}일';
+    // catName, catSpecies를 status에도 반영(선택사항)
+    catStatus.catName.value = catName;
+    // catStatus.catSpecies = _selectedSpecies; // 만약 catStatus에 종이 있다면
+
+    // 맵핑된 파일명
+    await prefs.setString('selectedCat', catFileName);
+    await prefs.setBool('isOnboarded', true);
+
+    // (D) 탄생일 기록
+    final now = DateTime.now();
+    final birthdayString = '${now.year}년 ${now.month}월 ${now.day}일';
     await prefs.setString('catBirthday', birthdayString);
 
-    print('고양이 이름: $catName');
-    print('고양이 종: $_selectedSpecies');
-    print('탄생일: $birthdayString');
-
-    // 4) 알림창(다이얼로그) 표시
+    // (E) 축하 메시지 다이얼로그
     await showDialog(
       context: context,
-      builder: (context) {
+      builder: (_) {
         return AlertDialog(
           title: const Text('축하합니다🥳'),
-          content: Text('$birthdayString\n🐱$catName🐱가(이) 탄생했어요!'),
+          content: Text('$birthdayString\n🐱 $catName 🐱가(이) 탄생했어요!'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // 다이얼로그 닫기
-                // 이후 메인 화면으로 이동
+                // 메인화면으로 이동 (스택 제거)
                 Navigator.pushReplacementNamed(context, '/');
               },
               child: const Text('확인'),
