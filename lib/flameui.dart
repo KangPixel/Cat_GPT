@@ -42,21 +42,21 @@ class CatGame extends FlameGame with TapDetector {
     // ValueNotifier에 초기 스프라이트 설정
     catStatus.catSprite.value = _normalSprite;
 
-    // 이미지 원본 비율 유지하며 크기 조정
-    double catWidth = size.x * 0.45;
-    double aspectRatio = _normalSprite.image.height / _normalSprite.image.width;
-    double catHeight = catWidth * aspectRatio;
+  // 이미지 원본 비율 유지하며 크기 조정
+  // catWidth를 0.45 대신 0.55 (또는 원하는 값)으로 변경하면 고양이가 더 커집니다.
+  double catWidth = size.x * 0.55; // 60%로 확대 (이전: 0.45)
+  double aspectRatio = _normalSprite.image.height / _normalSprite.image.width;
+  double catHeight = catWidth * aspectRatio;
 
-    // 고양이 컴포넌트
-    cat = SpriteComponent()
-      ..sprite = catStatus.catSprite.value
-      // ..size = Vector2(size.x * 0.45, size.y * 0.4)
-      ..size = Vector2(catWidth, catHeight)
-      ..position = Vector2(
-        (size.x - catWidth) / 2,
-        size.y / 2 - catHeight * 0.45,
-      );
-    add(cat);
+  // 고양이 컴포넌트 생성 (위치 계산은 기존과 동일)
+  cat = SpriteComponent()
+    ..sprite = catStatus.catSprite.value
+    ..size = Vector2(catWidth, catHeight)
+    ..position = Vector2(
+      (size.x - catWidth) / 2,
+      size.y / 2 - catHeight * 0.5,
+    );
+  add(cat);
 
     // 캘린더 컴포넌트 추가
     _calendarComponent = CalendarComponent(dayManager.currentDay)
@@ -119,13 +119,13 @@ class CalendarComponent extends PositionComponent {
 
   @override
   Future<void> onLoad() async {
-    size = Vector2(85, 60);
+    size = Vector2(100, 70); // 캘린더 크기 설정
 
     // 빨간색 상단 사각형
     add(RectangleComponent(
       position: Vector2(0, 0),
       size: Vector2(size.x, size.y * 0.25),
-      paint: Paint()..color = Colors.red,
+      paint: Paint()..color = Color(0xFFFF7373),
     ));
 
     // 흰색 하단 사각형
@@ -137,13 +137,13 @@ class CalendarComponent extends PositionComponent {
 
     // 일반 텍스트 부분
     add(TextComponent(
-      text: ' D -',
-      position: Vector2(size.x / 4, size.y * 0.6),
+      text: ' D -  ',
+      position: Vector2(size.x * 0.3, size.y * 0.6),
       anchor: Anchor.center,
       textRenderer: TextPaint(
         style: const TextStyle(
+          fontFamily: 'DNFBitBitv2',
           fontSize: 24,
-          fontWeight: FontWeight.bold,
           color: Colors.black,
         ),
       ),
@@ -152,13 +152,13 @@ class CalendarComponent extends PositionComponent {
     // 붉은 색으로 강조된 날짜 텍스트
     daysTextComponent = TextComponent(
       text: '$remainingDays',
-      position: Vector2(size.x / 2 + 15, size.y * 0.6),
+      position: Vector2(size.x * 0.7, size.y * 0.6),
       anchor: Anchor.center,
       textRenderer: TextPaint(
         style: const TextStyle(
+          fontFamily: 'DNFBitBitv2',
           fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: Colors.red,
+          color: Color(0xFFC70000),
         ),
       ),
     );
@@ -170,6 +170,24 @@ class CalendarComponent extends PositionComponent {
     remainingDays = newDays;
     daysTextComponent.text = '$remainingDays';
   }
+}
+
+// 캘린더 컴포넌트를 화면에 배치
+void addCalendarToScreen(PositionComponent parent, double screenWidth) {
+  final double calendarWidth = 85;
+  final double calendarHeight = 60;
+
+  // 화면 우측 여백 설정
+  final double rightMargin = 30;
+
+  final CalendarComponent calendarComponent = CalendarComponent(10)
+    ..position = Vector2(
+      screenWidth - calendarWidth - rightMargin,
+      20, // 상단 여백
+    )
+    ..size = Vector2(calendarWidth, calendarHeight);
+
+  parent.add(calendarComponent);
 }
 
 // 말풍선
@@ -189,13 +207,13 @@ class SpeechBubble extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(25), // 더 둥글게 수정
             border: Border.all(
-              color: const Color(0xFFFF929E), // 분홍색으로 변경
+              color: const Color.fromARGB(255, 255, 255, 255), // 분홍색으로 변경
               width: 3, // 테두리 두께 증가
             ),
           ),
           child: Text(
             text,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 20),
           ),
         ),
         Positioned(
@@ -228,7 +246,7 @@ class SpeechBubbleTail extends CustomPainter {
 
     // 테두리 그리기
     final borderPaint = Paint()
-      ..color = const Color(0xFFFF929E) // 분홍색으로 변경
+      ..color = const Color.fromARGB(255, 255, 255, 255) // 분홍색으로 변경
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3 // 테두리 두께 증가
       ..strokeCap = StrokeCap.round
