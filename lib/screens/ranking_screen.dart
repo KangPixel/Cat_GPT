@@ -24,7 +24,7 @@ class RankingScreen extends StatelessWidget {
               Column(
                 children: [
                   Lottie.asset(
-                    'fireworks.json', // 🎆 불꽃 애니메이션
+                    'assets/fireworks.json', // 🎆 불꽃 애니메이션
                     width: 200,
                     height: 200,
                     repeat: true, // 🔥 무한 반복
@@ -41,7 +41,7 @@ class RankingScreen extends StatelessWidget {
               Column(
                 children: [
                   Lottie.asset(
-                    'cheer.json', // 😢 위로하는 애니메이션
+                    'assets/cheer.json', // 😢 위로하는 애니메이션
                     width: 200,
                     height: 200,
                     repeat: true, // 🔄 무한 반복
@@ -50,7 +50,10 @@ class RankingScreen extends StatelessWidget {
                   const Text(
                     '아쉽지만 다음에 한번 더! 🐱',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.blue),
+                    style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue),
                   ),
                 ],
               ),
