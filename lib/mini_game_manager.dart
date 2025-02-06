@@ -1,4 +1,4 @@
-//lib/mini_game_manager.dart
+// lib/mini_game_manager.dart
 import 'package:flutter/material.dart';
 import 'status.dart';
 import 'day10_stats.dart';
@@ -27,10 +27,7 @@ class MiniGameManager {
   Future<void> processGameResult(
       BuildContext context, MiniGameResult result) async {
     // 스탯 업데이트
-    catStatus.updateStatus(
-      fatigueDelta: result.fatigueIncrease,
-      energyDelta: -result.fatigueIncrease,
-    ); // 피로도만큼 에너지 감소
+    catStatus.updateStatus(fatigueDelta: result.fatigueIncrease);
     day10Stats.updateStats(pointsDelta: result.pointsEarned);
 
     // 결과 팝업 표시
