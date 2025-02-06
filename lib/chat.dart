@@ -91,6 +91,7 @@ class _ChatScreenState extends State<ChatScreen> {
             final sign = (delta > 0) ? '+' : '';
             final sysMsg =
                 '친밀도가 $sign$delta만큼 ${(delta > 0) ? '올랐어요:)' : '내려갔어요:('}';
+
             // 채팅 목록에 system 메시지 추가
             chatLog.addMessage('system', sysMsg);
           }

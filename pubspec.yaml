@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   flame: ^1.22.0
+  flame_audio: ^2.10.2
   flame_forge2d: ^0.16.0+2
   freezed_annotation: ^2.4.1
   get_it: ^7.6.4
@@ -19,10 +20,12 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.3.5
   playing_cards: 0.3.1+9
+
   lottie: ^3.3.0
 
   flutter_native_splash: ^2.4.4
-  flame_audio: ^2.1.8
+  
+
 
 
 
@@ -35,7 +38,7 @@ dependencies:
     path: packages/Flutter_Blackjack
   flutter_suika_game:
     path: packages/flutter_suika_game
-    
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -47,8 +50,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/gray_cat.png
-    - assets/images/gray_cat_open_mouth.png
+
     - assets/images/suika_game/
     - assets/images/food.png
     - assets/images/sleep.png
@@ -62,6 +64,7 @@ flutter:
     - assets/images/nightcap.png
     - assets/images/
     - assets/images/cat/
+    - assets/audio/catsong.mp3
     - assets/
   fonts:
     - family: Pretendard

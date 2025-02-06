@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'day10_stats.dart';
 import 'package:flutter/material.dart';
 
+import 'package:flame_audio/flame_audio.dart';
+
 class CatRacingGame extends FlameGame with ChangeNotifier {
   final Cat selectedCat;
   final double raceDuration = 20.0; // 총 경주 시간 (20초)
@@ -41,6 +43,11 @@ class CatRacingGame extends FlameGame with ChangeNotifier {
     }
 
     print("✅ [Debug] 게임 화면 크기: ${screenWidth}x${screenHeight}");
+
+    //비동기적으로 배경음악 실행행
+    FlameAudio.bgm.play('catsong.mp3', volume: 0.2).catchError((e) {
+      print("❌ 배경음악 로드 중 오류 발생: $e");
+    });
 
     // 고양이들의 기본 위치 조정
     final double baseY = screenHeight * 0.75; // 화면 높이의 75% 위치
@@ -101,7 +108,6 @@ class CatRacingGame extends FlameGame with ChangeNotifier {
     }
   }
 
-
   // 🏆 레이스 결과 정리 (결승선 통과 시 바로 실행)
   void registerFinish(LottieCatRunner cat) {
     if (isRaceFinished) return;
@@ -117,17 +123,26 @@ class CatRacingGame extends FlameGame with ChangeNotifier {
     if (raceResults.length == catRunners.length) {
       isRaceFinished = true;
       _sortResults();
+      //배경 음악 중지 로그 추가
+      if (FlameAudio.bgm.isPlaying) {
+        print("🏁 레이스 종료! 배경음악 정지");
+        FlameAudio.bgm.stop();
+      } else {
+        print("⚠️ 배경음악이 이미 정지됨");
+      }
     }
   }
 
   // 순위 정렬 및 UI 업데이트
   void _sortResults() {
-    raceResults.sort((a, b) => (b['position'] as double).compareTo(a['position'] as double));
+    raceResults.sort(
+        (a, b) => (b['position'] as double).compareTo(a['position'] as double));
     notifyListeners();
 
     print("🏆 Race Results:");
     for (int i = 0; i < raceResults.length; i++) {
-      print("${i + 1}위: ${raceResults[i]['name']} (위치: ${raceResults[i]['position']})");
+      print(
+          "${i + 1}위: ${raceResults[i]['name']} (위치: ${raceResults[i]['position']})");
     }
   }
 }

@@ -1,26 +1,20 @@
-// lib/play.dart
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'package:get_it/get_it.dart';
-import 'package:lottie/lottie.dart';
 
-// 본 게임(메인) 상태들
+// 기존 상단 코드 내 import들
 import 'status.dart';
 import 'day10_stats.dart';
 import 'mini_game_manager.dart';
-
-// jump_rope_game 패키지
 import 'package:jump_rope_game/jump_rope_game.dart' as jump_rope;
-
-// 다른 게임들
 import 'package:flutter_blackjack_pkg/view/bj_game.dart';
 import 'package:flutter_blackjack_pkg/services/blackjack_manager.dart';
 import 'package:flutter_blackjack_pkg/services/game_service_impl.dart';
 import 'package:flutter_suika_game/ui/main_game.dart';
+import 'package:ski_master/game/game.dart';
 import 'package:flutter_suika_game/src/suika_manager.dart';
 import 'package:flutter_suika_game/domain/game_state.dart';
 import 'package:flutter_suika_game/presenter/score_presenter.dart';
-import 'package:ski_master/game/game.dart';
 import 'package:ski_master/game/routes/gameplay.dart';
 
 class PlayScreen extends StatefulWidget {
@@ -51,6 +45,9 @@ class _PlayScreenState extends State<PlayScreen> {
     return ValueListenableBuilder<int>(
       valueListenable: catStatus.energy,
       builder: (context, energy, _) {
+        // ---------------------------
+        // 에너지가 부족한 경우의 화면
+        // ---------------------------
         if (energy < 50) {
           return Scaffold(
             appBar: AppBar(title: const Text('Play')),
@@ -63,7 +60,7 @@ class _PlayScreenState extends State<PlayScreen> {
                     fit: BoxFit.cover,
                   ),
                 ),
-                // 하단 중앙에 텍스트 배치
+                // 하단 중앙에 안내 텍스트
                 Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
@@ -91,7 +88,11 @@ class _PlayScreenState extends State<PlayScreen> {
           );
         }
 
+        // --------------------------------
+        // 에너지가 충분한 경우의 메인 화면
+        // --------------------------------
         return Scaffold(
+          backgroundColor: Colors.cyan[50], // 하단 코드의 전체 배경색 반영
           appBar: AppBar(
             title: const Text('Play'),
             actions: [
@@ -113,40 +114,15 @@ class _PlayScreenState extends State<PlayScreen> {
           ),
           body: Column(
             children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ValueListenableBuilder<int>(
-                      valueListenable: day10Stats.speed,
-                      builder: (context, speed, _) {
-                        return Text('Speed: $speed',
-                            style: const TextStyle(fontSize: 18));
-                      },
-                    ),
-                    ValueListenableBuilder<int>(
-                      valueListenable: day10Stats.burst,
-                      builder: (context, burst, _) {
-                        return Text('Burst: $burst',
-                            style: const TextStyle(fontSize: 18));
-                      },
-                    ),
-                    ValueListenableBuilder<int>(
-                      valueListenable: day10Stats.stamina,
-                      builder: (context, stamina, _) {
-                        return Text('Stamina: $stamina',
-                            style: const TextStyle(fontSize: 18));
-                      },
-                    ),
-                  ],
-                ),
-              ),
+              // -------------------
+              // 스탯 Progress Bar
+              // -------------------
+              _buildStatsBar(),
               const SizedBox(height: 20),
+
+              // -------------------------
+              // 미니게임 버튼들 (Grid)
+              // -------------------------
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,
@@ -154,7 +130,7 @@ class _PlayScreenState extends State<PlayScreen> {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   children: [
-                    // Jump Rope 게임 카드 부분
+                    // 1) Jump Rope
                     _buildGameCard(
                       'Jump Rope',
                       'assets/images/jump_rope.png',
@@ -182,6 +158,7 @@ class _PlayScreenState extends State<PlayScreen> {
 
                         late final jump_rope.JumpRopeGame game;
 
+                        // 게임 종료 및 정산 처리
                         void processGameEnd() {
                           final currentFatigue =
                               jump_rope.jumpRopeManager.gameOverCount * 5;
@@ -195,6 +172,7 @@ class _PlayScreenState extends State<PlayScreen> {
                           Navigator.of(context).pop(result);
                         }
 
+                        // 재시작 시도 핸들러
                         void handleRestartAttempt() {
                           final currentFatigue =
                               jump_rope.jumpRopeManager.gameOverCount * 5;
@@ -211,7 +189,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                 actions: [
                                   TextButton(
                                     onPressed: () {
-                                      Navigator.pop(context);
+                                      Navigator.pop(context); // 다이얼로그 닫기
                                       processGameEnd();
                                     },
                                     child: const Text('확인'),
@@ -224,6 +202,7 @@ class _PlayScreenState extends State<PlayScreen> {
                           }
                         }
 
+                        // JumpRopeGame 초기화
                         game = jump_rope.JumpRopeGame(
                             onRestartAttempt: handleRestartAttempt);
 
@@ -243,7 +222,8 @@ class _PlayScreenState extends State<PlayScreen> {
                         });
                       },
                     ),
-                    // Ski 게임
+
+                    // 2) Ski Master
                     _buildGameCard(
                       'Ski',
                       'assets/images/ski.png',
@@ -278,7 +258,8 @@ class _PlayScreenState extends State<PlayScreen> {
                         });
                       },
                     ),
-                    // Blackjack 게임
+
+                    // 3) Blackjack
                     _buildGameCard(
                       'Blackjack',
                       'assets/images/blackjack.png',
@@ -329,7 +310,7 @@ class _PlayScreenState extends State<PlayScreen> {
                               messageColor = Colors.blue[700];
                             }
 
-                            final result = MiniGameResult(
+                            final miniGameResult = MiniGameResult(
                               gameName: 'Blackjack',
                               totalScore: moneyDiff,
                               fatigueIncrease: (moneyDiff < 0) ? 10 : 5,
@@ -339,12 +320,14 @@ class _PlayScreenState extends State<PlayScreen> {
                               additionalMessage: subMessage,
                             );
 
-                            miniGameManager.processGameResult(context, result);
+                            miniGameManager.processGameResult(
+                                context, miniGameResult);
                           }
                         });
                       },
                     ),
-                    // Watermelon(Suika) 게임
+
+                    // 4) Watermelon(Suika) Game
                     _buildGameCard(
                       'Watermelon Game',
                       'assets/images/watermelon.png',
@@ -388,39 +371,101 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
+  // -------------------------------------------------------------
+  // 하단 코드에서 가져온 '스탯 바(Progress Bar)' UI 컴포넌트들
+  // -------------------------------------------------------------
+  Widget _buildStatsBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildStatRow('SPEED   ', day10Stats.speed, Colors.blue),
+          const SizedBox(height: 6),
+          _buildStatRow('BURST   ', day10Stats.burst, Colors.red),
+          const SizedBox(height: 6),
+          _buildStatRow('STAMINA', day10Stats.stamina, Colors.green),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, ValueNotifier<int> stat, Color color) {
+    return ValueListenableBuilder<int>(
+      valueListenable: stat,
+      builder: (context, value, _) {
+        final ratio = (value / 100).clamp(0.0, 1.0); // 0~1 범위로
+        return Row(
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: LinearProgressIndicator(
+                  value: ratio,
+                  backgroundColor: Colors.grey[300],
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                  minHeight: 12,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text('$value', style: const TextStyle(fontSize: 14)),
+          ],
+        );
+      },
+    );
+  }
+
+  // -------------------------------------------------------------
+  // 하단 코드의 GameCard 스타일 + 상단 코드의 로직 연결
+  // -------------------------------------------------------------
   Widget _buildGameCard(String title, String imagePath, VoidCallback onTap) {
     return Card(
-      elevation: 4,
+      color: Colors.transparent, // 투명 카드
+      elevation: 0, // 그림자 제거
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
-        child: SizedBox(
-          width: 150,
-          height: 160,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 8),
-              Expanded(
-                child: Image.asset(
-                  imagePath,
-                  height: double.infinity,
-                  width: double.infinity,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(Icons.games, size: 100);
-                  },
-                ),
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset(
+                imagePath,
+                width: 180,
+                height: 180,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.games, size: 80);
+                },
               ),
-              const SizedBox(height: 8),
-              Text(title, style: const TextStyle(fontSize: 16)),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  // -------------------------------------------------------
+  // 상단 코드의 고급 _buildGameScreen 로직(WillPopScope 등)
+  // -------------------------------------------------------
   Widget _buildGameScreen(BuildContext context, FlameGame game, String title) {
     // 1) MainGame(GameState) 등록 로직
     if (game is MainGame) {
@@ -429,7 +474,6 @@ class _PlayScreenState extends State<PlayScreen> {
       if (GetIt.I.isRegistered<GameState>()) {
         GetIt.I.unregister<GameState>();
       }
-
       GetIt.I.registerSingleton<GameState>(
         GameState(
           buildContext: context,
@@ -441,7 +485,7 @@ class _PlayScreenState extends State<PlayScreen> {
       );
     }
 
-    // 2) 만약 title이 "Suika Game"이라면 뒤로가기 시 팝업 + 결과 pop
+    // 2) Suika Game이면 뒤로가기 시 팝업 + 결과 반환(WillPopScope)
     if (title == 'Suika Game') {
       return WillPopScope(
         onWillPop: () async {
