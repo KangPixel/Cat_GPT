@@ -2,58 +2,65 @@ import 'dart:math';
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'models/cat.dart';
-import 'background.dart';
-import 'components/cat_runner.dart';
+import '../lottie_background.dart';
+import '../components/lottie_cat_runner.dart';
 import 'package:flutter/foundation.dart';
 import 'day10_stats.dart';
+import 'package:flutter/material.dart';
 
 class CatRacingGame extends FlameGame with ChangeNotifier {
   final Cat selectedCat;
-  late ScrollingBackground scrollingBackground;
-  final double raceDuration = 30.0; // 총 경주 시간
-  final List<CatRunner> catRunners = [];
+  final double raceDuration = 20.0; // 총 경주 시간 (20초)
+  final List<LottieCatRunner> catRunners = []; // 고양이 객체 리스트
   bool isRaceFinished = false;
-  final List<Map<String, dynamic>> raceResults = [];
+  final List<Map<String, dynamic>> raceResults = []; // 최종 결과 저장
+
+  // 고양이 색상과 이름 매칭
+  final Map<String, String> catNameMap = {
+    'one': 'Player',
+    'two': '흰냥이',
+    'three': '갈냥이',
+    'four': '아이보리냥이',
+  };
 
   CatRacingGame({required this.selectedCat});
 
   @override
   Future<void> onLoad() async {
-    // 배경 로드 및 추가
-    final backgroundSprite = await loadSprite('background1.png');
-    scrollingBackground = ScrollingBackground(
-      sprite: backgroundSprite,
-      size: Vector2(576, 324),
-      speed: 110,
-    );
-    add(scrollingBackground);
+    await super.onLoad();
 
-    // 고양이 로드 및 추가
+    // 🔹 `size`가 설정될 때까지 대기
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    final double screenWidth = size.x;
+    final double screenHeight = size.y;
+
+    if (screenWidth == 0 || screenHeight == 0) {
+      print("❌ [Error] 게임 크기가 설정되지 않았음.");
+      return;
+    }
+
+    print("✅ [Debug] 게임 화면 크기: ${screenWidth}x${screenHeight}");
+
+    // 고양이들의 기본 위치 조정
+    final double baseY = screenHeight * 0.75; // 화면 높이의 75% 위치
+    final double spacing = screenHeight * 0.04; // 고양이 간격
+
     final List<String> colors = ['one', 'two', 'three', 'four'];
     final random = Random();
 
     for (int i = 0; i < colors.length; i++) {
-      final List<Sprite> catFrames = await Future.wait(
-        List.generate(
-          9,
-          (j) => loadSprite('frame_${(j + 1).toString().padLeft(2, '0')}_${colors[i]}.png'),
-        ),
-      );
+      final double baseSpeed = 1.0 + random.nextDouble() * 5.0; // 기본 속도 (1~5)
+      final double speedVariation = 1.0 + random.nextDouble() * 5.0; // 속도 변동 범위
+      final double phaseOffset = i * pi / 4; // 위상 차이 적용
+      final double speedFrequency = 1.0 + random.nextDouble();
 
-      final double baseSpeed = 5.0 + random.nextDouble() * 5.0;
-      final double speedVariation = 5.0 + random.nextDouble() * 10.0;
-      final double phaseOffset = i * pi / 4; // 각 고양이별 위상 차이
-      final double speedFrequency = 5.0 + random.nextDouble(); // 고양이별 속도 주기
-
-      final catRunner = CatRunner(
-        frames: catFrames,
+      final catRunner = LottieCatRunner(
         raceDuration: raceDuration,
-        position: Vector2(50, 230 + (i * 10)),
-        size: Vector2(64, 64),
+        position: Vector2(50, baseY + (i * spacing)), // 고양이 위치 조정
+        size: Vector2(screenWidth * 0.1, screenHeight * 0.1), // 고양이 크기 비율 조정
         color: colors[i],
-        baseSpeed: i == 0 
-            ? baseSpeed + day10Stats.normalizedScore
-            : baseSpeed,
+        baseSpeed: i == 0 ? baseSpeed + day10Stats.normalizedScore : baseSpeed,
         speedVariation: speedVariation,
         phaseOffset: phaseOffset,
         speedFrequency: speedFrequency,
@@ -62,61 +69,65 @@ class CatRacingGame extends FlameGame with ChangeNotifier {
       catRunners.add(catRunner);
       add(catRunner);
     }
+
+    // 🔥 Overlay 추가 (배경 + 고양이)
+    Future.delayed(const Duration(milliseconds: 500), () {
+      overlays.add('background');
+      for (var cat in catRunners) {
+        overlays.add(cat.color);
+      }
+    });
   }
 
   @override
   void update(double dt) {
     super.update(dt);
 
-    // 레이스 종료 조건 확인
-    if (!isRaceFinished && scrollingBackground.currentRepeats >= scrollingBackground.maxRepeats) {
-      isRaceFinished = true;
-      calculateResults();
-      notifyListeners();
-      pauseEngine();
-    }
-  }
+    if (!isRaceFinished) {
+      bool allFinished = true;
 
-  void calculateResults() {
-  // 배경 반복 종료 여부 확인
-    final bool raceFinished = scrollingBackground.currentRepeats >= scrollingBackground.maxRepeats;
+      for (final catRunner in catRunners) {
+        if (catRunner.position.x < size.x - catRunner.size.x) {
+          allFinished = false;
+          break;
+        }
+      }
 
-    final List<Map<String, dynamic>> completed = [];
-    final List<Map<String, dynamic>> notCompleted = [];
-
-    for (final catRunner in catRunners) {
-      if (raceFinished && catRunner.position.x >= size.x) {
-        // 완주한 고양이: 도착 순서 기록
-        completed.add({
-          'color': catRunner.color,
-          'position': catRunner.position.x,
-        });
-      } else {
-        // 미완주한 고양이
-        notCompleted.add({
-          'color': catRunner.color,
-          'position': catRunner.position.x,
-        });
+      if (allFinished) {
+        isRaceFinished = true;
+        _sortResults();
+        pauseEngine();
       }
     }
+  }
 
-    // 완주한 고양이 정렬 (위치 기준 내림차순)
-    completed.sort((a, b) => (b['position'] as double).compareTo(a['position'] as double));
 
-    // 미완주한 고양이 정렬 (위치 기준 내림차순)
-    notCompleted.sort((a, b) => (b['position'] as double).compareTo(a['position'] as double));
+  // 🏆 레이스 결과 정리 (결승선 통과 시 바로 실행)
+  void registerFinish(LottieCatRunner cat) {
+    if (isRaceFinished) return;
 
-    // 완주 + 미완주 결과 합치기
-    raceResults.clear();
-    raceResults.addAll(completed);
-    raceResults.addAll(notCompleted);
+    if (!raceResults.any((r) => r['color'] == cat.color)) {
+      raceResults.add({
+        'name': catNameMap[cat.color] ?? cat.color,
+        'color': cat.color,
+        'position': cat.position.x,
+      });
+    }
 
-    // 결과 출력
-    print("Race Results: $raceResults");
-    print("Background Loops: ${scrollingBackground.currentRepeats} / ${scrollingBackground.maxRepeats}");
-    for (final catRunner in catRunners) {
-      print("Cat ${catRunner.color}: Position ${catRunner.position.x}");
+    if (raceResults.length == catRunners.length) {
+      isRaceFinished = true;
+      _sortResults();
     }
   }
 
+  // 순위 정렬 및 UI 업데이트
+  void _sortResults() {
+    raceResults.sort((a, b) => (b['position'] as double).compareTo(a['position'] as double));
+    notifyListeners();
+
+    print("🏆 Race Results:");
+    for (int i = 0; i < raceResults.length; i++) {
+      print("${i + 1}위: ${raceResults[i]['name']} (위치: ${raceResults[i]['position']})");
+    }
+  }
 }
