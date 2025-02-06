@@ -1,3 +1,4 @@
+//packages/jump_rope_game/lib/src/bear.dart
 import 'package:flame/components.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';

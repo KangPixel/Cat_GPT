@@ -1,4 +1,4 @@
-// cat_shadow.dart
+//packages/jump_rope_game/lib/src/cat_shadow.dart
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 

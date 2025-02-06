@@ -1,4 +1,4 @@
-// packages/jump_rope_game/lib/src/jump_rope_manager.dart  획득점수, 게임오버 회수 넘겨줌
+//packages/jump_rope_game/lib/src/jump_rope_manager.dart
 import 'package:flutter/material.dart';
 
 class JumpRopeGameManager {
@@ -32,5 +32,4 @@ class JumpRopeGameManager {
   }
 }
 
-// ★ 여기 중요! ★
 final jumpRopeManager = JumpRopeGameManager();

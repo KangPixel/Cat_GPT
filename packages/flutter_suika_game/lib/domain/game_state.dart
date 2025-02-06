@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
@@ -215,7 +216,9 @@ class GameState {
   void onDragEnd() {
     if (draggingFruit == null) {
       return;
+      // 과일 드롭할 때 사운드 재생
     }
+    FlameAudio.play('drop.wav', volume: 0.4);
     // 드래그 중인 과일을 월드에서 제거
     _worldPresenter.remove(draggingFruit!);
 
@@ -341,6 +344,10 @@ class GameState {
       fruit1: fruit1.fruit.copyWith(pos: fruit1.body.position),
       fruit2: fruit2.fruit.copyWith(pos: fruit2.body.position),
     );
+    // 과일이 성공적으로 합쳐졌을 때만 사운드 재생
+    if (merged != null) {
+      FlameAudio.play('pop.wav', volume: 2.1);
+    }
 
     // 만약 수박(최대 크기)이 됐다면 madeWatermelon = true
     if (merged?.radius == FruitType.watermelon.radius) {

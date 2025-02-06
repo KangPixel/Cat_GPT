@@ -1,4 +1,4 @@
-//background.dart
+//packages/jump_rope_game/lib/src/background.dart
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;

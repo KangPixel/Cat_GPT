@@ -20,7 +20,7 @@ dependencies:
   shared_preferences: ^2.3.5
   playing_cards: 0.3.1+9
   flutter_native_splash: ^2.4.4
-
+  flame_audio: ^2.1.8
 
 
 
@@ -59,7 +59,6 @@ flutter:
     - assets/images/space_background.png
     - assets/images/nightcap.png
     - assets/images/
-
   fonts:
     - family: Pretendard
       fonts:

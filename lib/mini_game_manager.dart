@@ -5,17 +5,21 @@ import 'day10_stats.dart';
 
 class MiniGameResult {
   final String gameName;
-  final int totalScore; // Jump Rope에서는 "획득 점수", Blackjack에서는 "획득 돈"으로 표시
+  final int totalScore;
   final int fatigueIncrease;
   final int pointsEarned;
-  final String? fatigueMessage; // 피로도 관련 메시지 추가
+  final String? fatigueMessage;
+  final Color? fatigueMessageColor;
+  final String? additionalMessage;
 
   MiniGameResult({
     required this.gameName,
     required this.totalScore,
     required this.fatigueIncrease,
     required this.pointsEarned,
-    this.fatigueMessage, // 선택적 파라미터
+    this.fatigueMessage,
+    this.fatigueMessageColor,
+    this.additionalMessage,
   });
 }
 
@@ -40,7 +44,6 @@ class MiniGameManager {
   }
 
   Future<void> _showResultDialog(BuildContext context, MiniGameResult result) {
-    // 게임 이름에 따라 "총 획득 돈" vs "총 획득 점수" 분기
     final labelScore = (result.gameName == 'Blackjack') ? '총 획득 돈' : '총 획득 점수';
 
     return showDialog(
@@ -55,23 +58,65 @@ class MiniGameManager {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 여기서 분기한 labelScore 사용
+                  // 획득 점수/돈 표시
                   Text('$labelScore: ${result.totalScore}'),
+
+                  // 피로도 증가와 실패 메시지
                   Row(
                     children: [
                       Text('피로도 증가: ${result.fatigueIncrease}'),
-                      if (result.fatigueMessage != null) ...[
+                      if (result.fatigueMessage != null &&
+                          (result.additionalMessage == null ||
+                              result.fatigueMessageColor ==
+                                  Colors.red[700])) ...[
                         const SizedBox(width: 5),
                         Text(
                           result.fatigueMessage!,
-                          style: const TextStyle(color: Colors.red),
+                          style: TextStyle(
+                            color: result.fatigueMessageColor,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ],
                   ),
-                  Text('획득한 포인트: ${result.pointsEarned}'),
 
-                  // 점수(포인트)로 스탯 올리는 로직은 기존과 동일
+                  // 포인트 획득과 보너스 메시지
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('획득한 포인트: ${result.pointsEarned}'),
+                      if (result.fatigueMessage != null &&
+                          result.additionalMessage != null &&
+                          result.fatigueMessageColor == Colors.blue[700]) ...[
+                        const SizedBox(width: 5),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                result.fatigueMessage!,
+                                style: TextStyle(
+                                  color: result.fatigueMessageColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              Text(
+                                result.additionalMessage!,
+                                style: TextStyle(
+                                  color: result.fatigueMessageColor,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+
+                  // 스탯 올리기 UI
                   if (result.pointsEarned > 0) ...[
                     const SizedBox(height: 20),
                     const Text('포인트로 스탯 올리기 (10포인트당 1스탯)'),

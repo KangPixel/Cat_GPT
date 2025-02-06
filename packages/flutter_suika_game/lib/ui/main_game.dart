@@ -20,12 +20,17 @@ import 'package:flutter_suika_game/presenter/world_presenter.dart';
 import 'package:flutter_suika_game/repository/game_repository.dart';
 import 'package:get_it/get_it.dart';
 
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter_suika_game/ui/next_fruit_label.dart';
 import 'package:flutter_suika_game/presenter/next_fruit_label_presenter.dart';
 
-class ExitButton extends PositionComponent with TapCallbacks {
+class ExitButton extends PositionComponent with TapCallbacks, HoverCallbacks {
   final BuildContext? hostContext;
   final GameState gameState;
+  bool _isHovered = false;
+  final Paint _buttonPaint = Paint();
+  late final RRect _buttonRect;
+  static const cornerRadius = 8.0;
 
   ExitButton({
     required Vector2 position,
@@ -33,10 +38,70 @@ class ExitButton extends PositionComponent with TapCallbacks {
     required this.gameState,
   }) : super(
           position: position,
-          // 버튼 크기를 지정 (글자 + 여백에 맞춰 적절히 조정)
-          size: Vector2(100, 40),
+          size: Vector2(80, 35),
           anchor: Anchor.topLeft,
         );
+
+  @override
+  void onMount() {
+    super.onMount();
+    _buttonRect = RRect.fromRectAndRadius(
+      size.toRect(),
+      const Radius.circular(cornerRadius),
+    );
+  }
+
+  @override
+  void render(Canvas canvas) {
+    // 그림자 효과
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+    canvas.drawRRect(
+      _buttonRect.shift(const Offset(2, 2)),
+      shadowPaint,
+    );
+
+    // 버튼 배경
+    _buttonPaint.color =
+        _isHovered ? const Color(0xFFE74C3C) : const Color(0xFFFF6B6B);
+    canvas.drawRRect(_buttonRect, _buttonPaint);
+
+    // 테두리
+    final borderPaint = Paint()
+      ..color = Colors.white.withOpacity(0.5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    canvas.drawRRect(_buttonRect, borderPaint);
+
+    // 텍스트 렌더링
+    final textConfig = TextPaint(
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+
+    final text = '나가기';
+    textConfig.render(
+      canvas,
+      text,
+      Vector2(size.x / 2 - 30, size.y / 2 - 14), // 대략적인 중앙 위치로 조정
+    );
+  }
+
+  @override
+  bool onHoverEnter() {
+    _isHovered = true;
+    return true;
+  }
+
+  @override
+  bool onHoverExit() {
+    _isHovered = false;
+    return true;
+  }
 
   @override
   void onTapDown(TapDownEvent event) {
@@ -85,6 +150,7 @@ class MainGame extends Forge2DGame with TapCallbacks, MultiTouchDragDetector {
   Future<void> onLoad() async {
     await super.onLoad();
     await GetIt.I.reset();
+    await FlameAudio.audioCache.loadAll(['drop.wav', 'pop.wav']);
 
     final predictionLineComponent = PredictionLineComponent();
     final scoreComponent = ScoreComponent();
@@ -122,31 +188,12 @@ class MainGame extends Forge2DGame with TapCallbacks, MultiTouchDragDetector {
       );
     }
 
-    // 나가기 버튼
-    final exitButton = ExitButton(
-      position: Vector2(size.x - 120, 30),
+    // 새로운 나가기 버튼 추가
+    add(ExitButton(
+      position: Vector2(size.x - 100, 20),
       hostContext: hostContext,
       gameState: _gameState,
-    );
-
-    // 버튼 안에 표시될 텍스트
-    final exitText = TextComponent(
-      text: '나가기',
-      textRenderer: TextPaint(
-        style: const TextStyle(
-          fontSize: 24,
-          color: Colors.black,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-    // 텍스트 중앙 정렬
-    exitText.anchor = Anchor.center;
-    // exitButton.size에 맞춰, 중앙 배치
-    exitText.position = exitButton.size / 2;
-
-    exitButton.add(exitText);
-    add(exitButton);
+    ));
 
     GetIt.I.get<GameState>().onLoad();
     world.physicsWorld.setContactListener(FruitsContactListener());

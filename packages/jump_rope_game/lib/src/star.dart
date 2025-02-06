@@ -1,4 +1,4 @@
-// star.dart
+//packages/jump_rope_game/lib/src/star.dart
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +11,8 @@ class StarComponent extends SpriteComponent with HasGameRef {
     required this.travelTime,
     this.points = 20,
   }) : super(
-          position: Vector2(-50, 300),
-          size: Vector2(50, 50),
+          position: Vector2(200, 160),
+          size: Vector2(30, 30),
           anchor: Anchor.center,
         );
 
@@ -20,8 +20,8 @@ class StarComponent extends SpriteComponent with HasGameRef {
   Future<void> onLoad() async {
     sprite = await gameRef.loadSprite('star.png');
 
-    final endPosition = Vector2(450, 300);
-    final controlPoint = Vector2(200, 100);
+    final endPosition = Vector2(650, 200);
+    final controlPoint = Vector2(430, 75);
 
     final path = Path()
       ..moveTo(position.x, position.y)
@@ -35,7 +35,7 @@ class StarComponent extends SpriteComponent with HasGameRef {
     add(
       MoveAlongPathEffect(
         path,
-        EffectController(duration: travelTime),
+        EffectController(duration: travelTime / 1.5),
         onComplete: () => removeFromParent(),
       ),
     );

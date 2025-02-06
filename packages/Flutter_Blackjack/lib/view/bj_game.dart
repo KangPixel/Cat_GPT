@@ -1,10 +1,11 @@
-//bj_game.dart
+// bj_game.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_blackjack_pkg/services/game_service.dart';
 import 'package:flutter_blackjack_pkg/services/game_service_impl.dart';
 import 'package:flutter_blackjack_pkg/widgets/card.dart';
 import 'package:playing_cards/playing_cards.dart';
 import 'package:flutter_blackjack_pkg/services/blackjack_manager.dart';
+import 'package:flame_audio/flame_audio.dart';
 
 class BlackJackGame extends StatefulWidget {
   final GameService gameService;
@@ -21,16 +22,32 @@ class _BlackJackGameState extends State<BlackJackGame> {
   @override
   void initState() {
     super.initState();
-    // 저장된 상태가 없을 때만 초기화
+    _loadAudio();
     if (blackjackManager.getSavedState() == null) {
       widget.gameService.getPlayer().wallet = blackjackManager.initialWallet;
       widget.gameService.getPlayer().bet = betOptions[0];
     }
-    // 이전 게임이 진행 중이었다면 그 상태 복원
     final savedState = blackjackManager.getSavedState();
     if (savedState != null &&
         savedState['gameState'] == GameState.playerActive) {
       _hasGameStarted = true;
+    }
+  }
+
+  Future<void> _loadAudio() async {
+    await FlameAudio.audioCache.load('card.wav');
+  }
+
+  void _playCardSound() {
+    FlameAudio.play('card.wav', volume: 0.5);
+  }
+
+  void _checkForAutoSettlement() {
+    final currentWallet = widget.gameService.getPlayer().wallet;
+    if (currentWallet <= 0 || currentWallet >= 150000) {
+      if (!_isSettling && _hasGameStarted) {
+        _onPressSettlement(isAuto: true);
+      }
     }
   }
 
@@ -45,7 +62,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
 
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pop(context); // 단순히 화면만 닫기
+        Navigator.pop(context);
         return false;
       },
       child: Scaffold(
@@ -54,7 +71,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
           title: const Text('Blackjack'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context), // 단순히 화면만 닫기
+            onPressed: () => Navigator.pop(context),
           ),
         ),
         body: Column(
@@ -82,8 +99,10 @@ class _BlackJackGameState extends State<BlackJackGame> {
                 GestureDetector(
                   onTap: () {
                     if (isPlayerActive) {
+                      _playCardSound();
                       widget.gameService.drawCard();
                       setState(() {});
+                      _checkForAutoSettlement();
                     }
                   },
                   child: SizedBox(
@@ -106,8 +125,10 @@ class _BlackJackGameState extends State<BlackJackGame> {
                     ElevatedButton(
                       onPressed: () {
                         if (isPlayerActive) {
+                          _playCardSound();
                           _onGameEnd();
                         } else {
+                          _playCardSound();
                           setState(() {
                             _startNewGame();
                           });
@@ -153,7 +174,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
                           _isSettling ||
                           !hasPlayedAtLeastOneRound)
                       ? null
-                      : _onPressSettlement,
+                      : () => _onPressSettlement(),
                   child: const Text("정산"),
                 ),
               ],
@@ -189,8 +210,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
                           final bool isSelected =
                               (option == widget.gameService.getPlayer().bet);
                           final bool canAfford = wallet >= option;
-                          final bool isPlayingCurrentRound =
-                              isPlayerActive; // 한 판이 진행중인지 여부
+                          final bool isPlayingCurrentRound = isPlayerActive;
 
                           return Tooltip(
                             message: !canAfford
@@ -199,8 +219,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
                                     ? '게임 진행 중에는 베팅을 변경할 수 없습니다'
                                     : '베팅 가능',
                             child: ElevatedButton(
-                              onPressed: (!canAfford ||
-                                      isPlayingCurrentRound) // 현재 판이 진행중이면 베팅 변경 불가
+                              onPressed: (!canAfford || isPlayingCurrentRound)
                                   ? null
                                   : () {
                                       setState(() {
@@ -273,9 +292,9 @@ class _BlackJackGameState extends State<BlackJackGame> {
   }
 
   void _startNewGame() {
+    _playCardSound();
     widget.gameService.startNewGame();
     _hasGameStarted = true;
-    // 새 게임 시작할 때의 상태를 저장
     blackjackManager.saveGameState(
         player: widget.gameService.getPlayer(),
         dealer: widget.gameService.getDealer(),
@@ -283,31 +302,33 @@ class _BlackJackGameState extends State<BlackJackGame> {
   }
 
   void _onGameEnd() {
+    _playCardSound();
     widget.gameService.endTurn();
     setState(() {});
+    _checkForAutoSettlement();
   }
 
-  void _onPressSettlement() {
+  void _onPressSettlement({bool isAuto = false}) {
     if (_isSettling || !_hasGameStarted) return;
     setState(() {
       _isSettling = true;
     });
-    final currentWallet = widget.gameService.getPlayer().wallet;
 
-    // 게임 상태 초기화
+    final currentWallet = widget.gameService.getPlayer().wallet;
+    final pointsMultiplier = currentWallet >= 150000 ? 1.5 : 1.0; // 15만으로 변경
+    final bonusMessage = currentWallet >= 150000
+        ? {'main': "돈을 많이 벌었어요!", 'sub': "축하보너스로 포인트가 1.5배 적용됩니다!"}
+        : null;
+
     widget.gameService.resetGameState();
-    // blackjackManager의 저장된 상태도 초기화
     blackjackManager.clearSavedState();
 
     if (mounted) {
-      // 정산 완료 표시와 함께 wallet 전달
-      Navigator.pop(context, currentWallet);
+      Navigator.pop(context, {
+        'wallet': currentWallet,
+        'pointsMultiplier': pointsMultiplier,
+        'bonusMessage': bonusMessage,
+      });
     }
-  }
-
-  @override
-  void dispose() {
-    // 세션 종료 로직 제거
-    super.dispose();
   }
 }

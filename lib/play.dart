@@ -1,5 +1,4 @@
 // lib/play.dart
-
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'package:get_it/get_it.dart';
@@ -26,12 +25,6 @@ class PlayScreen extends StatefulWidget {
 
 class _PlayScreenState extends State<PlayScreen> {
   static GameServiceImpl? _gameService;
-
-  // 수박 게임(수이카 게임)용 MainGame 인스턴스는
-  // '매번 새로 생성'할 수도 있고(아래 예시), 전역으로 재사용할 수도 있습니다.
-  // 여기서는 "클릭 시 새 인스턴스"로 예시.
-  // final MainGame _suikaGame = MainGame();
-
   late FocusNode _gameFocusNode;
 
   @override
@@ -54,15 +47,42 @@ class _PlayScreenState extends State<PlayScreen> {
         if (energy < 50) {
           return Scaffold(
             appBar: AppBar(title: const Text('Play')),
-            body: const Center(
-              child: Text(
-                'Need at least 50 energy to play!',
-                style: TextStyle(fontSize: 20),
-              ),
+            body: Stack(
+              children: [
+                // 배경 이미지
+                Positioned.fill(
+                  child: Image.asset(
+                    'assets/images/noenergycat.jpg',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                // 하단 중앙에 텍스트 배치
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      '놀기 위해 새로운 에너지가 필요해요!',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontFamily: 'OwnglyphPDH',
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            offset: Offset(2.0, 2.0),
+                            blurRadius: 3.0,
+                            color: Colors.black.withOpacity(0.5),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         }
-
         return Scaffold(
           appBar: AppBar(
             title: const Text('Play'),
@@ -126,18 +146,88 @@ class _PlayScreenState extends State<PlayScreen> {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   children: [
-                    // 1) Jump Rope
+                    // Jump Rope 게임 카드 부분
                     _buildGameCard(
                       'Jump Rope',
                       'assets/images/jump_rope.png',
                       () {
+                        // 시작 전 에너지 체크
+                        if (catStatus.energy.value < 50) {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('에너지 부족'),
+                              content:
+                                  const Text('줄넘기를 하기 위해서는 50 이상의 에너지가 필요합니다.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('확인'),
+                                ),
+                              ],
+                            ),
+                          );
+                          return;
+                        }
+
                         jump_rope.jumpRopeManager.startNewSession();
+
+                        late final jump_rope.JumpRopeGame game; // 변수 먼저 선언
+
+                        // 게임 종료 및 정산 처리 함수
+                        void processGameEnd() {
+                          final currentFatigue =
+                              jump_rope.jumpRopeManager.gameOverCount * 5;
+                          final result = MiniGameResult(
+                            gameName: 'Jump Rope',
+                            totalScore: jump_rope.jumpRopeManager.totalScore,
+                            fatigueIncrease: currentFatigue,
+                            pointsEarned:
+                                jump_rope.jumpRopeManager.totalScore ~/ 10,
+                          );
+                          Navigator.of(context).pop(result);
+                        }
+
+                        // 재시작 시도 핸들러
+                        void handleRestartAttempt() {
+                          final currentFatigue =
+                              jump_rope.jumpRopeManager.gameOverCount * 5;
+                          final remainingEnergy =
+                              catStatus.energy.value - currentFatigue;
+
+                          if (remainingEnergy < 50) {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('에너지 부족'),
+                                content: const Text(
+                                    '게임을 계속하기 위해서는 50 이상의 에너지가 필요합니다.'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context); // 다이얼로그 닫기
+                                      processGameEnd();
+                                    },
+                                    child: const Text('확인'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          } else {
+                            game.resetGame(); // 이제 game 변수를 참조할 수 있음
+                          }
+                        }
+
+                        // 이제 game 초기화
+                        game = jump_rope.JumpRopeGame(
+                            onRestartAttempt: handleRestartAttempt);
+
                         Navigator.push<MiniGameResult>(
                           context,
                           MaterialPageRoute(
                             builder: (context) => _buildGameScreen(
                               context,
-                              jump_rope.JumpRopeGame(),
+                              game,
                               'Jump Rope',
                             ),
                           ),
@@ -148,7 +238,6 @@ class _PlayScreenState extends State<PlayScreen> {
                         });
                       },
                     ),
-
                     // 2) Ski
                     _buildGameCard(
                       'Ski',
@@ -165,13 +254,11 @@ class _PlayScreenState extends State<PlayScreen> {
                           ),
                         ).then((resultMap) {
                           if (resultMap != null) {
-                            // 게임 종료 상태에 따른 점수 처리
                             final score = resultMap['score'] as int;
                             final isGameOver = resultMap['gameOver'] as bool;
                             final levelCompleted =
                                 resultMap['levelCompleted'] as bool;
 
-                            // 게임이 정상적으로 끝났을 때만 결과 처리
                             if (isGameOver || levelCompleted) {
                               final result = MiniGameResult(
                                 gameName: 'Ski Master',
@@ -186,7 +273,6 @@ class _PlayScreenState extends State<PlayScreen> {
                         });
                       },
                     ),
-
                     // 3) Blackjack
                     _buildGameCard(
                       'Blackjack',
@@ -199,18 +285,24 @@ class _PlayScreenState extends State<PlayScreen> {
                           _gameService = GameServiceImpl();
                         }
 
-                        Navigator.push<int>(
+                        Navigator.push<Map<String, dynamic>>(
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
                                 BlackJackGame(gameService: _gameService!),
                           ),
-                        ).then((finalWallet) {
+                        ).then((result) {
                           if (!mounted) return;
 
-                          if (finalWallet == null) {
+                          if (result == null) {
                             return;
                           }
+
+                          final finalWallet = result['wallet'] as int;
+                          final pointsMultiplier =
+                              result['pointsMultiplier'] as double;
+                          final bonusMessage =
+                              result['bonusMessage'] as Map<String, String>?;
 
                           final moneyDiff =
                               blackjackManager.getMoneyDifference(finalWallet);
@@ -218,14 +310,32 @@ class _PlayScreenState extends State<PlayScreen> {
                           if (moneyDiff != 0) {
                             _gameService = null;
                             blackjackManager.endSession();
+
+                            final pointsEarned =
+                                ((moneyDiff > 0) ? (moneyDiff ~/ 1000) : 0) *
+                                    pointsMultiplier;
+
+                            String? message;
+                            Color? messageColor;
+                            String? subMessage;
+
+                            if (moneyDiff < 0) {
+                              message = "(돈을 잃었어요.)";
+                              messageColor = Colors.red[700];
+                            } else if (bonusMessage != null) {
+                              message = bonusMessage['main'];
+                              subMessage = bonusMessage['sub'];
+                              messageColor = Colors.blue[700];
+                            }
+
                             final result = MiniGameResult(
                               gameName: 'Blackjack',
                               totalScore: moneyDiff,
                               fatigueIncrease: (moneyDiff < 0) ? 10 : 5,
-                              pointsEarned:
-                                  (moneyDiff > 0) ? (moneyDiff ~/ 1000) : 0,
-                              fatigueMessage:
-                                  moneyDiff < 0 ? "(돈을 잃었어요.)" : null,
+                              pointsEarned: pointsEarned.toInt(),
+                              fatigueMessage: message,
+                              fatigueMessageColor: messageColor,
+                              additionalMessage: subMessage,
                             );
 
                             miniGameManager.processGameResult(context, result);
@@ -239,14 +349,10 @@ class _PlayScreenState extends State<PlayScreen> {
                       'Watermelon Game',
                       'assets/images/watermelon.png',
                       () {
-                        // 세션 리셋
                         suikaGameManager.startNewSession();
-
-                        // 매번 새 인스턴스(게임 객체) 생성
                         final MainGame newSuikaGame = MainGame();
                         newSuikaGame.setContext(context);
 
-                        // push -> .then(...)로 결과 받기
                         Navigator.push<Map<String, dynamic>>(
                           context,
                           MaterialPageRoute(
@@ -315,13 +421,11 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
-  /// 게임 화면 빌드
   Widget _buildGameScreen(BuildContext context, FlameGame game, String title) {
     // 1) MainGame(GameState) 등록 로직
     if (game is MainGame) {
       game.setContext(context);
 
-      // 기존 GameState가 등록된 상태라면 해제 후 다시 등록
       if (GetIt.I.isRegistered<GameState>()) {
         GetIt.I.unregister<GameState>();
       }
@@ -341,7 +445,6 @@ class _PlayScreenState extends State<PlayScreen> {
     if (title == 'Suika Game') {
       return WillPopScope(
         onWillPop: () async {
-          // 뒤로가기 시, 팝업으로 "예/아니오"
           final answer = await showDialog<bool>(
             context: context,
             barrierDismissible: false,
@@ -352,14 +455,12 @@ class _PlayScreenState extends State<PlayScreen> {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      // "예" -> true
                       Navigator.of(dialogCtx).pop(true);
                     },
                     child: const Text("예"),
                   ),
                   TextButton(
                     onPressed: () {
-                      // "아니오" -> false
                       Navigator.of(dialogCtx).pop(false);
                     },
                     child: const Text("아니오"),
@@ -370,34 +471,27 @@ class _PlayScreenState extends State<PlayScreen> {
           );
 
           if (answer == true) {
-            // "예" → 실제 정산 결과를 pop(...)으로 넘기기
-            // ScorePresenter나 suikaGameManager, GameState에서 실제 점수/정보를 가져와서
-            // 아래 resultMap을 구성하면 됩니다. (예: 999 대신 실제 점수)
-            final score = GetIt.I.get<ScorePresenter>().score; // 예시
+            final score = GetIt.I.get<ScorePresenter>().score;
             final madeWatermelon = GetIt.I.get<GameState>().madeWatermelon;
             final fatigue = madeWatermelon ? 5 : 10;
 
             final resultMap = {
               'gameName': 'Suika Game',
-              'totalScore': score, // 실제 점수
+              'totalScore': score,
               'fatigueIncrease': fatigue,
-              'pointsEarned': score ~/ 100, // 예시: 100점 당 1포인트
+              'pointsEarned': score ~/ 100,
               'fatigueMessage': madeWatermelon ? '수박을 만들었어요!' : '게임 종료',
             };
 
-            // 상위의 .then((resultMap) {...})로 값을 전달 → 정산
             Navigator.of(context).pop(resultMap);
-
-            // WillPopScope 반환값은 무시돼도 되지만, 이미 pop했으므로 false나 true나 상관없음
             return false;
           } else {
-            // "아니오" → 뒤로가기 취소
             return false;
           }
         },
         child: Scaffold(
           appBar: AppBar(
-            automaticallyImplyLeading: true, // 기본 뒤로가기 아이콘
+            automaticallyImplyLeading: true,
             title: Text(title),
           ),
           body: SafeArea(
@@ -417,62 +511,58 @@ class _PlayScreenState extends State<PlayScreen> {
       );
     }
 
-    // 3) 그 외 게임(점프 로프, 블랙잭, 스키)은 기존 로직(앱바 leading) 유지
-    else {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(title),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              if (title == 'Ski Master') {
-                if (game is SkiMasterGame) {
-                  final gameplay = game.findByKeyName<Gameplay>(Gameplay.id);
-                  if (gameplay != null) {
-                    gameplay.handleSettle(isGameOver: false); // 게임 정리 (BGM 등)
+    // 3) 그 외 게임들의 기본 화면
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (title == 'Ski Master') {
+              if (game is SkiMasterGame) {
+                final gameplay = game.findByKeyName<Gameplay>(Gameplay.id);
+                if (gameplay != null) {
+                  gameplay.handleSettle(isGameOver: false);
 
-                    // 약간의 딜레이 후 결과 반환 및 Navigator.pop
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      final resultMap = {
-                        'score': gameplay.score,
-                        'gameOver': false,
-                        'levelCompleted': false,
-                        'additionalFatigue': 5,
-                      };
-                      Navigator.of(context).pop(resultMap);
-                    });
-                  }
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    final resultMap = {
+                      'score': gameplay.score,
+                      'gameOver': false,
+                      'levelCompleted': false,
+                      'additionalFatigue': 5,
+                    };
+                    Navigator.of(context).pop(resultMap);
+                  });
                 }
-              } else if (title == 'Jump Rope') {
-                final mgr = jump_rope.jumpRopeManager;
-                final result = MiniGameResult(
-                  gameName: 'Jump Rope',
-                  totalScore: mgr.totalScore,
-                  fatigueIncrease: mgr.gameOverCount * 5,
-                  pointsEarned: mgr.totalScore ~/ 10,
-                );
-                Navigator.of(context).pop(result);
-              } else {
-                // 다른 게임은 그냥 pop
-                Navigator.of(context).pop();
               }
-            },
+            } else if (title == 'Jump Rope') {
+              final mgr = jump_rope.jumpRopeManager;
+              final result = MiniGameResult(
+                gameName: 'Jump Rope',
+                totalScore: mgr.totalScore,
+                fatigueIncrease: mgr.gameOverCount * 5,
+                pointsEarned: mgr.totalScore ~/ 10,
+              );
+              Navigator.of(context).pop(result);
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
+        ),
+      ),
+      body: SafeArea(
+        child: GameWidget(
+          game: game,
+          autofocus: true,
+          focusNode: _gameFocusNode,
+          loadingBuilder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          errorBuilder: (context, error) => Center(
+            child: Text('Error: $error'),
           ),
         ),
-        body: SafeArea(
-          child: GameWidget(
-            game: game,
-            autofocus: true,
-            focusNode: _gameFocusNode,
-            loadingBuilder: (context) => const Center(
-              child: CircularProgressIndicator(),
-            ),
-            errorBuilder: (context, error) => Center(
-              child: Text('Error: $error'),
-            ),
-          ),
-        ),
-      );
-    }
+      ),
+    );
   }
 }

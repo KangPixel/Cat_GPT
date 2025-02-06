@@ -1,6 +1,5 @@
 //player_model.dart
 import 'dart:math';
-
 import 'package:playing_cards/playing_cards.dart';
 
 const START_MONEY = 10000;
@@ -25,8 +24,6 @@ class Player {
 
   void lostBet() {
     wallet -= bet;
-    if (wallet <= 0) {
-      wallet = START_MONEY;
-    }
+    // 여기서 wallet이 0 이하일 때 초기화하는 코드를 제거
   }
 }

@@ -1,3 +1,4 @@
+//packages/jump_rope_game/lib/src/game_core.dart
 import 'package:flame/game.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -5,37 +6,41 @@ import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async' as async;
+import 'package:flame_audio/flame_audio.dart';
 
 import 'cat.dart';
 import 'cat_shadow.dart';
 import 'bear.dart';
 import 'background.dart';
 import 'star.dart';
-
-// 싱글턴 매니저 (점수/게임오버 관리)
 import 'jump_rope_manager.dart';
 
 class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
+  final VoidCallback onRestartAttempt;
+
   late final Cat cat;
   late CatShadow catShadow;
   late final RopeWithBears ropeWithBears;
 
-  /// 화면에 표시할 로컬 점수 (jumpRopeManager와 별개)
   int score = 0;
-
   late TextComponent scoreText;
   bool isGameOver = false;
   bool isReady = false;
-  bool gameStarted = false; // 첫 점프 전까지 점수 카운트 안 함
+  bool gameStarted = false;
 
   int lastPriority = 2;
   bool scoredThisRotation = false;
 
   async.Timer? starSpawnTimer;
 
+  JumpRopeGame({required this.onRestartAttempt});
+
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+
+    await FlameAudio.audioCache
+        .loadAll(['catjump.wav', 'catstar.wav', 'catgameover.wav']);
 
     final background = Background();
     background.size = size;
@@ -60,10 +65,6 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
     _addUI();
     _showReadyMessage();
 
-    // ★ 여기서 더 이상 jumpRopeManager.startNewSession()을 부르지 않습니다. ★
-    //   세션 초기화는 parent(PlayScreen)에서만 하도록.
-
-    // 별 생성 타이머(2초 후 시작)
     Future.delayed(const Duration(seconds: 2), () {
       startSpawningStars();
     });
@@ -125,11 +126,10 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
 
     if (!isReady || isGameOver) return;
 
-    // 점수 로직 - gameStarted가 true일 때만 점수 추가
     if (gameStarted && lastPriority == 2 && ropeWithBears.priority == 0) {
       if (!scoredThisRotation) {
         score += 10;
-        jumpRopeManager.addScore(10); // 싱글턴 매니저에도 누적
+        jumpRopeManager.addScore(10);
         scoredThisRotation = true;
       }
     } else if (lastPriority == 0 && ropeWithBears.priority == 2) {
@@ -138,12 +138,10 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
 
     lastPriority = ropeWithBears.priority;
 
-    // 줄과 고양이 충돌 체크 (줄이 앞으로 왔을 때)
     if (ropeWithBears.checkCollision() && !cat.isJumping) {
       gameOver();
     }
 
-    // 별과 충돌 체크
     for (final component in children) {
       if (component is StarComponent) {
         final starBounds = component.toRect();
@@ -155,7 +153,8 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
 
         if (starBounds.overlaps(catBounds)) {
           score += component.points;
-          jumpRopeManager.addScore(component.points); // 매니저에도 추가
+          jumpRopeManager.addScore(component.points);
+          FlameAudio.play('catstar.wav', volume: 0.4);
           component.removeFromParent();
         }
       }
@@ -165,10 +164,12 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
   }
 
   void gameOver() {
+    if (isGameOver) return;
+
     isGameOver = true;
     starSpawnTimer?.cancel();
 
-    // 매니저에 게임오버 횟수 +1
+    FlameAudio.play('catgameover.wav', volume: 0.4);
     jumpRopeManager.incrementGameOver();
 
     add(
@@ -193,18 +194,19 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
     Set<LogicalKeyboardKey> keysPressed,
   ) {
     if (event is KeyDownEvent) {
-      // R 키 => 게임 재시작
       if (event.logicalKey == LogicalKeyboardKey.keyR) {
-        resetGame();
+        if (isGameOver) {
+          onRestartAttempt(); // 콜백 호출
+        }
         return KeyEventResult.handled;
       }
 
-      // 스페이스 => 점프
       if (event.logicalKey == LogicalKeyboardKey.space) {
         if (!isGameOver && isReady && !cat.isJumping) {
           if (!gameStarted) {
-            gameStarted = true; // 첫 점프에서만 true
+            gameStarted = true;
           }
+          FlameAudio.play('catjump.wav', volume: 0.5);
           cat.jump();
           return KeyEventResult.handled;
         }
@@ -213,7 +215,6 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
     return KeyEventResult.ignored;
   }
 
-  /// R 키로 “로컬 게임”만 리셋 → 매니저 점수/오버 횟수는 그대로 유지
   void resetGame() {
     score = 0;
     lastPriority = 2;
@@ -227,19 +228,14 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
     cat.reset();
     ropeWithBears.reset();
 
-    // 화면에 있는 StarComponent 제거
     children.whereType<StarComponent>().forEach(remove);
 
-    // "Game Over!" 텍스트 제거
     children
         .whereType<TextComponent>()
         .where((text) => text.text.contains('Game Over'))
         .forEach(remove);
 
     _showReadyMessage();
-
-    // ★ 여기서도 startNewSession() 호출 안 함! (누적 계속)
-    // jumpRopeManager.startNewSession();  <-- 제거
 
     Future.delayed(const Duration(seconds: 2), () {
       startSpawningStars();
