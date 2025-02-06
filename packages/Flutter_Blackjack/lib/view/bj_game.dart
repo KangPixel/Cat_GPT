@@ -39,7 +39,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
   }
 
   void _playCardSound() {
-    FlameAudio.play('card.wav', volume: 0.5);
+    FlameAudio.play('card.wav', volume: 2.0);
   }
 
   void _checkForAutoSettlement() {
@@ -78,9 +78,9 @@ class _BlackJackGameState extends State<BlackJackGame> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
-            // 딜러 카드
+            // Dealer cards
             SizedBox(
-              height: 180,
+              height: 150,
               width: widget.gameService.getDealer().hand.length * 90,
               child: FlatCardFan(
                 children: [
@@ -91,11 +91,11 @@ class _BlackJackGameState extends State<BlackJackGame> {
             ),
             const SizedBox(height: 25),
 
-            // 중앙 (히트 + Finish/NewGame + 정산)
+            // Center controls
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                // 히트
+                // Hit
                 GestureDetector(
                   onTap: () {
                     if (isPlayerActive) {
@@ -106,7 +106,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
                     }
                   },
                   child: SizedBox(
-                    width: 150,
+                    width: 120,
                     child: FlatCardFan(
                       children: [
                         cardWidget(
@@ -138,35 +138,55 @@ class _BlackJackGameState extends State<BlackJackGame> {
                     ),
                     const SizedBox(height: 10),
                     if (!isPlayerActive && _hasGameStarted) ...[
-                      Text(
-                        "승자: ${widget.gameService.getWinner()}",
-                        style: const TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'cursive',
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                      Text(
-                        "딜러: ${widget.gameService.getScore(widget.gameService.getDealer())}",
-                        style: const TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'cursive',
-                        ),
-                      ),
-                      Text(
-                        "You: ${widget.gameService.getScore(widget.gameService.getPlayer())}",
-                        style: const TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'cursive',
+                        child: Column(
+                          children: [
+                            Text(
+                              "승자: ${widget.gameService.getWinner()}",
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Dealer: ${widget.gameService.getScore(widget.gameService.getDealer())}",
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    Text(
+                                      "You: ${widget.gameService.getScore(widget.gameService.getPlayer())}",
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ]
                   ],
                 ),
 
-                // 정산 버튼
+                // Settlement button
                 ElevatedButton(
                   style:
                       ElevatedButton.styleFrom(backgroundColor: Colors.orange),
@@ -181,7 +201,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
             ),
             const SizedBox(height: 25),
 
-            // 승/패, 베팅 버튼
+            // Stats and betting
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -193,7 +213,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
                 ),
                 const SizedBox(width: 30),
 
-                // 베팅 버튼들
+                // Bet buttons
                 Expanded(
                   child: Column(
                     children: [
@@ -212,39 +232,45 @@ class _BlackJackGameState extends State<BlackJackGame> {
                           final bool canAfford = wallet >= option;
                           final bool isPlayingCurrentRound = isPlayerActive;
 
-                          return Tooltip(
-                            message: !canAfford
-                                ? '잔액 부족'
-                                : isPlayingCurrentRound
-                                    ? '게임 진행 중에는 베팅을 변경할 수 없습니다'
-                                    : '베팅 가능',
-                            child: ElevatedButton(
-                              onPressed: (!canAfford || isPlayingCurrentRound)
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        widget.gameService.getPlayer().bet =
-                                            option;
-                                      });
-                                    },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isSelected
-                                    ? Colors.orange
-                                    : canAfford
-                                        ? Colors.blueGrey
-                                        : Colors.red.shade200,
-                                disabledBackgroundColor: isSelected
-                                    ? Colors.orange.shade200
-                                    : canAfford
-                                        ? Colors.grey.shade400
-                                        : Colors.red.shade100,
-                              ),
-                              child: Text(
-                                '$option',
-                                style: TextStyle(
-                                  color: canAfford
-                                      ? Colors.white
-                                      : Colors.grey[800],
+                          return SizedBox(
+                            width: 80,
+                            height: 35,
+                            child: Tooltip(
+                              message: !canAfford
+                                  ? '잔액 부족'
+                                  : isPlayingCurrentRound
+                                      ? '게임 진행 중에는 베팅을 변경할 수 없습니다'
+                                      : '베팅 가능',
+                              child: ElevatedButton(
+                                onPressed: (!canAfford || isPlayingCurrentRound)
+                                    ? null
+                                    : () {
+                                        setState(() {
+                                          widget.gameService.getPlayer().bet =
+                                              option;
+                                        });
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(horizontal: 4),
+                                  backgroundColor: isSelected
+                                      ? Colors.orange
+                                      : canAfford
+                                          ? Colors.blueGrey
+                                          : Colors.red.shade200,
+                                  disabledBackgroundColor: isSelected
+                                      ? Colors.orange.shade200
+                                      : canAfford
+                                          ? Colors.grey.shade400
+                                          : Colors.red.shade100,
+                                ),
+                                child: Text(
+                                  '$option',
+                                  style: TextStyle(
+                                    color: canAfford
+                                        ? Colors.white
+                                        : Colors.grey[800],
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ),
@@ -258,9 +284,9 @@ class _BlackJackGameState extends State<BlackJackGame> {
             ),
             const SizedBox(height: 25),
 
-            // 플레이어 카드
+            // Player cards
             SizedBox(
-              height: 180,
+              height: 200,
               width: widget.gameService.getPlayer().hand.length * 90,
               child: FlatCardFan(
                 children: [
@@ -271,7 +297,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
             ),
             const SizedBox(height: 12),
 
-            // 지갑
+            // Wallet
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -315,7 +341,7 @@ class _BlackJackGameState extends State<BlackJackGame> {
     });
 
     final currentWallet = widget.gameService.getPlayer().wallet;
-    final pointsMultiplier = currentWallet >= 150000 ? 1.5 : 1.0; // 15만으로 변경
+    final pointsMultiplier = currentWallet >= 150000 ? 1.5 : 1.0;
     final bonusMessage = currentWallet >= 150000
         ? {'main': "돈을 많이 벌었어요!", 'sub': "축하보너스로 포인트가 1.5배 적용됩니다!"}
         : null;

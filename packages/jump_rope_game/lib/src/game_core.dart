@@ -79,7 +79,7 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
   }
 
   void spawnStar() {
-    final star1 = star(travelTime: 3.0, points: 20);
+    final star1 = StarComponent(travelTime: 3.0, points: 20);
     add(star1);
   }
 
@@ -213,6 +213,28 @@ class JumpRopeGame extends FlameGame with KeyboardEvents, TapDetector {
       }
     }
     return KeyEventResult.ignored;
+  }
+
+  @override
+  bool onTapDown(TapDownInfo info) {
+    if (!isGameOver && isReady && !cat.isJumping) {
+      if (!gameStarted) {
+        gameStarted = true;
+      }
+      FlameAudio.play('catjump.wav', volume: 0.5);
+      cat.jump();
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  bool onTapUp(TapUpInfo info) {
+    if (isGameOver) {
+      onRestartAttempt();
+      return true;
+    }
+    return false;
   }
 
   void resetGame() {

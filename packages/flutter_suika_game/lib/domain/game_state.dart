@@ -95,7 +95,9 @@ class GameState {
       center - Vector2(screenSize.x + 1, screenSize.y + 13),
     );
     _nextFruitLabelPresenter.position = worldToScreen(
-      center - Vector2(-screenSize.x + 5, screenSize.y + 13),
+      center -
+          Vector2(-screenSize.x * 0.5,
+              screenSize.y + 13), // 고정값 대신 screenSize.x의 70% 위치로 설정
     );
 
     // 처음에 떨굴 과일(드래그 중인 과일) 세팅

@@ -144,7 +144,7 @@ class GameServiceImpl extends GameService {
     if (GameState.playerWon == gameState) {
       return "You";
     }
-    return "Nobody";
+    return "무승부";
   }
 
   int mapCardValueRules(List<PlayingCard> cards) {

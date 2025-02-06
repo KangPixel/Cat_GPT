@@ -53,16 +53,16 @@ class _PlayScreenState extends State<PlayScreen> {
             appBar: AppBar(title: const Text('Play')),
             body: Stack(
               children: [
-                // 배경 이미지
                 Positioned.fill(
                   child: Image.asset(
                     'assets/images/noenergycat.jpg',
                     fit: BoxFit.cover,
                   ),
                 ),
-                // 하단 중앙에 안내 텍스트
-                Align(
-                  alignment: Alignment.bottomCenter,
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: MediaQuery.of(context).size.height * 0.45,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Text(

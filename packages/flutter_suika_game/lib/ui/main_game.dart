@@ -31,6 +31,7 @@ class ExitButton extends PositionComponent with TapCallbacks, HoverCallbacks {
   final Paint _buttonPaint = Paint();
   late final RRect _buttonRect;
   static const cornerRadius = 8.0;
+  late final TextComponent _textComponent;
 
   ExitButton({
     required Vector2 position,
@@ -41,6 +42,30 @@ class ExitButton extends PositionComponent with TapCallbacks, HoverCallbacks {
           size: Vector2(80, 35),
           anchor: Anchor.topLeft,
         );
+
+  @override
+  Future<void> onLoad() async {
+    await super.onLoad();
+
+    _textComponent = TextComponent(
+      text: '나가기',
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      anchor: Anchor.center,
+    );
+
+    await add(_textComponent);
+    _updateTextPosition();
+  }
+
+  void _updateTextPosition() {
+    _textComponent.position = Vector2(size.x / 2, size.y / 2);
+  }
 
   @override
   void onMount() {
@@ -73,22 +98,12 @@ class ExitButton extends PositionComponent with TapCallbacks, HoverCallbacks {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     canvas.drawRRect(_buttonRect, borderPaint);
+  }
 
-    // 텍스트 렌더링
-    final textConfig = TextPaint(
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-
-    final text = '나가기';
-    textConfig.render(
-      canvas,
-      text,
-      Vector2(size.x / 2 - 30, size.y / 2 - 14), // 대략적인 중앙 위치로 조정
-    );
+  @override
+  void onGameResize(Vector2 gameSize) {
+    super.onGameResize(gameSize);
+    _updateTextPosition();
   }
 
   @override
