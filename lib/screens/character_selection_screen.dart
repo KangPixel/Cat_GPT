@@ -41,6 +41,12 @@ class CharacterSelectionScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('캐릭터 선택'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.popAndPushNamed(context, '/'); // GameScreen으로 이동
+          },
+        ),
       ),
       backgroundColor: Colors.cyan[50],
       body: GridView.builder(
