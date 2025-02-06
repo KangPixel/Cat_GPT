@@ -52,7 +52,7 @@ void _showFishOverlay(BuildContext context) {
       top: MediaQuery.of(context).size.height * 0.55, // 고양이 입 근처 위치
       left: MediaQuery.of(context).size.width * 0.35, // 중앙 위치 조정
       child: Image.asset(
-        'assets/images/fish.png',  // 생선 이미지 경로
+        'assets/images/fish.png', // 생선 이미지 경로
         width: 100,
         height: 100,
       ),
@@ -81,7 +81,8 @@ class SleepTransitionOverlay extends StatefulWidget {
   _SleepTransitionOverlayState createState() => _SleepTransitionOverlayState();
 }
 
-class _SleepTransitionOverlayState extends State<SleepTransitionOverlay> with SingleTickerProviderStateMixin {
+class _SleepTransitionOverlayState extends State<SleepTransitionOverlay>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeInAnimation;
   late Animation<double> _fadeOutAnimation;
@@ -126,7 +127,7 @@ class _SleepTransitionOverlayState extends State<SleepTransitionOverlay> with Si
   Future<void> _loadSelectedCatImage() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // 선택한 고양이 종에 맞는 이미지 파일 매핑
       final Map<String, String> catImages = {
         '회냥이': 'gray_cat',
@@ -182,7 +183,7 @@ class _SleepTransitionOverlayState extends State<SleepTransitionOverlay> with Si
                     builder: (context, constraints) {
                       // 고양이 이미지의 크기 설정
                       final catSize = constraints.maxWidth * 0.6; // 화면 너비의 60%
-                      
+
                       return Stack(
                         clipBehavior: Clip.none,
                         children: [
@@ -195,13 +196,13 @@ class _SleepTransitionOverlayState extends State<SleepTransitionOverlay> with Si
                               fit: BoxFit.contain,
                             ),
                           ),
-                          
+
                           // Nightcap Image
                           Positioned(
                             top: -(catSize * 0.24), // 고양이 크기의 24% 만큼 위로
-                            left: catSize * 0.33,   // 고양이 크기의 33% 만큼 왼쪽으로
+                            left: catSize * 0.33, // 고양이 크기의 33% 만큼 왼쪽으로
                             child: SizedBox(
-                              width: catSize * 0.4,  // 고양이 크기의 40%
+                              width: catSize * 0.4, // 고양이 크기의 40%
                               height: catSize * 0.4,
                               child: Image.asset(
                                 'assets/images/nightcap.png',
@@ -237,10 +238,10 @@ void sleepAction(BuildContext context) {
               catStatus.energy.value = 40;
               catStatus.resetFatigue();
               touchManager.resetTouchCount();
-              
+
               // Pop the transition overlay
               Navigator.of(context).pop();
-              
+
               dayManager.onSleep(context);
             });
           },

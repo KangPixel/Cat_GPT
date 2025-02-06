@@ -2,18 +2,25 @@
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'package:get_it/get_it.dart';
+import 'package:lottie/lottie.dart';
+
+// 본 게임(메인) 상태들
 import 'status.dart';
 import 'day10_stats.dart';
 import 'mini_game_manager.dart';
+
+// jump_rope_game 패키지
 import 'package:jump_rope_game/jump_rope_game.dart' as jump_rope;
+
+// 다른 게임들
 import 'package:flutter_blackjack_pkg/view/bj_game.dart';
 import 'package:flutter_blackjack_pkg/services/blackjack_manager.dart';
 import 'package:flutter_blackjack_pkg/services/game_service_impl.dart';
 import 'package:flutter_suika_game/ui/main_game.dart';
-import 'package:ski_master/game/game.dart';
 import 'package:flutter_suika_game/src/suika_manager.dart';
 import 'package:flutter_suika_game/domain/game_state.dart';
 import 'package:flutter_suika_game/presenter/score_presenter.dart';
+import 'package:ski_master/game/game.dart';
 import 'package:ski_master/game/routes/gameplay.dart';
 
 class PlayScreen extends StatefulWidget {
@@ -83,6 +90,7 @@ class _PlayScreenState extends State<PlayScreen> {
             ),
           );
         }
+
         return Scaffold(
           appBar: AppBar(
             title: const Text('Play'),
@@ -172,9 +180,8 @@ class _PlayScreenState extends State<PlayScreen> {
 
                         jump_rope.jumpRopeManager.startNewSession();
 
-                        late final jump_rope.JumpRopeGame game; // 변수 먼저 선언
+                        late final jump_rope.JumpRopeGame game;
 
-                        // 게임 종료 및 정산 처리 함수
                         void processGameEnd() {
                           final currentFatigue =
                               jump_rope.jumpRopeManager.gameOverCount * 5;
@@ -188,7 +195,6 @@ class _PlayScreenState extends State<PlayScreen> {
                           Navigator.of(context).pop(result);
                         }
 
-                        // 재시작 시도 핸들러
                         void handleRestartAttempt() {
                           final currentFatigue =
                               jump_rope.jumpRopeManager.gameOverCount * 5;
@@ -205,7 +211,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                 actions: [
                                   TextButton(
                                     onPressed: () {
-                                      Navigator.pop(context); // 다이얼로그 닫기
+                                      Navigator.pop(context);
                                       processGameEnd();
                                     },
                                     child: const Text('확인'),
@@ -214,11 +220,10 @@ class _PlayScreenState extends State<PlayScreen> {
                               ),
                             );
                           } else {
-                            game.resetGame(); // 이제 game 변수를 참조할 수 있음
+                            game.resetGame();
                           }
                         }
 
-                        // 이제 game 초기화
                         game = jump_rope.JumpRopeGame(
                             onRestartAttempt: handleRestartAttempt);
 
@@ -238,7 +243,7 @@ class _PlayScreenState extends State<PlayScreen> {
                         });
                       },
                     ),
-                    // 2) Ski
+                    // Ski 게임
                     _buildGameCard(
                       'Ski',
                       'assets/images/ski.png',
@@ -273,7 +278,7 @@ class _PlayScreenState extends State<PlayScreen> {
                         });
                       },
                     ),
-                    // 3) Blackjack
+                    // Blackjack 게임
                     _buildGameCard(
                       'Blackjack',
                       'assets/images/blackjack.png',
@@ -292,11 +297,7 @@ class _PlayScreenState extends State<PlayScreen> {
                                 BlackJackGame(gameService: _gameService!),
                           ),
                         ).then((result) {
-                          if (!mounted) return;
-
-                          if (result == null) {
-                            return;
-                          }
+                          if (!mounted || result == null) return;
 
                           final finalWallet = result['wallet'] as int;
                           final pointsMultiplier =
@@ -343,8 +344,7 @@ class _PlayScreenState extends State<PlayScreen> {
                         });
                       },
                     ),
-
-                    // 4) Watermelon(Suika) Game
+                    // Watermelon(Suika) 게임
                     _buildGameCard(
                       'Watermelon Game',
                       'assets/images/watermelon.png',

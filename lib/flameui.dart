@@ -42,21 +42,21 @@ class CatGame extends FlameGame with TapDetector {
     // ValueNotifier에 초기 스프라이트 설정
     catStatus.catSprite.value = _normalSprite;
 
-  // 이미지 원본 비율 유지하며 크기 조정
-  // catWidth를 0.45 대신 0.55 (또는 원하는 값)으로 변경하면 고양이가 더 커집니다.
-  double catWidth = size.x * 0.55; // 60%로 확대 (이전: 0.45)
-  double aspectRatio = _normalSprite.image.height / _normalSprite.image.width;
-  double catHeight = catWidth * aspectRatio;
+    // 이미지 원본 비율 유지하며 크기 조정
+    // catWidth를 0.45 대신 0.55 (또는 원하는 값)으로 변경하면 고양이가 더 커집니다.
+    double catWidth = size.x * 0.55; // 60%로 확대 (이전: 0.45)
+    double aspectRatio = _normalSprite.image.height / _normalSprite.image.width;
+    double catHeight = catWidth * aspectRatio;
 
-  // 고양이 컴포넌트 생성 (위치 계산은 기존과 동일)
-  cat = SpriteComponent()
-    ..sprite = catStatus.catSprite.value
-    ..size = Vector2(catWidth, catHeight)
-    ..position = Vector2(
-      (size.x - catWidth) / 2,
-      size.y / 2 - catHeight * 0.5,
-    );
-  add(cat);
+    // 고양이 컴포넌트 생성 (위치 계산은 기존과 동일)
+    cat = SpriteComponent()
+      ..sprite = catStatus.catSprite.value
+      ..size = Vector2(catWidth, catHeight)
+      ..position = Vector2(
+        (size.x - catWidth) / 2,
+        size.y / 2 - catHeight * 0.5,
+      );
+    add(cat);
 
     // 캘린더 컴포넌트 추가
     _calendarComponent = CalendarComponent(dayManager.currentDay)

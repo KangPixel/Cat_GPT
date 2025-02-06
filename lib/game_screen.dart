@@ -27,7 +27,8 @@ class UIComponents {
         return Container(
           height: 30,
           decoration: BoxDecoration(
-            border: Border.all(color: const Color.fromARGB(255, 255, 255, 255), width: 2.5),
+            border: Border.all(
+                color: const Color.fromARGB(255, 255, 255, 255), width: 2.5),
             borderRadius: BorderRadius.circular(13), // 테두리 둥굴게
           ),
           child: ClipRRect(
@@ -42,12 +43,12 @@ class UIComponents {
                   child: Container(color: color),
                 ),
                 Center(
-                  // 에너지 표시는 따로 Text에서 표기하기로 바뀜
-                  // child: Text(
-                  //   '$clampedValue%', // 현재 에너지 표시
-                  //   style: const TextStyle(fontWeight: FontWeight.bold),
-                  // ),
-                ),
+                    // 에너지 표시는 따로 Text에서 표기하기로 바뀜
+                    // child: Text(
+                    //   '$clampedValue%', // 현재 에너지 표시
+                    //   style: const TextStyle(fontWeight: FontWeight.bold),
+                    // ),
+                    ),
               ],
             ),
           ),
@@ -70,7 +71,8 @@ class UIComponents {
         return Container(
           height: 15,
           decoration: BoxDecoration(
-            border: Border.all(color: const Color.fromARGB(255, 255, 255, 255), width: 2.5),
+            border: Border.all(
+                color: const Color.fromARGB(255, 255, 255, 255), width: 2.5),
             borderRadius: BorderRadius.circular(13), // 테두리 둥글게
           ),
           child: ClipRRect(
@@ -113,7 +115,8 @@ class UIComponents {
           height: 20,
           decoration: BoxDecoration(
             // 외각선
-            border: Border.all(color: const Color.fromARGB(255, 255, 255, 255), width: 1.5),
+            border: Border.all(
+                color: const Color.fromARGB(255, 255, 255, 255), width: 1.5),
             borderRadius: BorderRadius.circular(8.0),
           ),
           child: FractionallySizedBox(
@@ -158,7 +161,7 @@ class UIComponents {
           textStyle: const TextStyle(fontFamily: 'Pretendard'),
         ),
         child: Text(
-          '', 
+          '',
           //label,
           //style: const TextStyle(fontSize: 16, color: Colors.white),
         ),
@@ -246,9 +249,9 @@ void showCatProfilePopup(BuildContext context) async {
                           ),
                           const SizedBox(height: 4.0),
                           Text(
-                            '생일: $catBirthday', 
+                            '생일: $catBirthday',
                             style: const TextStyle(
-                              fontSize: 14, 
+                              fontSize: 14,
                               color: Colors.grey,
                               fontFamily: 'Pretendard',
                             ),
@@ -348,7 +351,8 @@ void showCatGamePopup(BuildContext context) async {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const GameManualPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const GameManualPage()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -364,7 +368,8 @@ void showCatGamePopup(BuildContext context) async {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const CopyrightPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const CopyrightPage()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -531,7 +536,8 @@ class GameScreen extends StatelessWidget {
                                           fontFamily: 'Pretendard',
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
-                                          color: Color.fromARGB(255, 255, 255, 255),
+                                          color: Color.fromARGB(
+                                              255, 255, 255, 255),
                                         ),
                                       );
                                     }
@@ -545,7 +551,8 @@ class GameScreen extends StatelessWidget {
                                         fontFamily: 'Pretendard',
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
-                                        color: Color.fromARGB(255, 255, 255, 255),
+                                        color:
+                                            Color.fromARGB(255, 255, 255, 255),
                                       ),
                                     );
                                   },
@@ -596,8 +603,9 @@ class GameScreen extends StatelessWidget {
 
           // Play 버튼
           Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.05, // 화면 높이의 5% 만큼 떨어짐
-            left: MediaQuery.of(context).size.width * 0.08,    // 화면 너비의 8% 만큼 떨어짐
+            bottom:
+                MediaQuery.of(context).size.height * 0.05, // 화면 높이의 5% 만큼 떨어짐
+            left: MediaQuery.of(context).size.width * 0.08, // 화면 너비의 8% 만큼 떨어짐
             child: UIComponents.buildButtonWithBackground(
               label: 'Play',
               backgroundImage: 'assets/images/play.png',
@@ -613,8 +621,9 @@ class GameScreen extends StatelessWidget {
 
           // Talk 버튼
           Positioned(
-            bottom: MediaQuery.of(context).size.height * 0.05, // 화면 높이의 5% 만큼 떨어짐
-            right: MediaQuery.of(context).size.width * 0.08,    // 화면 너비의 8% 만큼 떨어짐
+            bottom:
+                MediaQuery.of(context).size.height * 0.05, // 화면 높이의 5% 만큼 떨어짐
+            right: MediaQuery.of(context).size.width * 0.08, // 화면 너비의 8% 만큼 떨어짐
             child: UIComponents.buildButtonWithBackground(
               label: 'Talk',
               backgroundImage: 'assets/images/speech_bubble.png',

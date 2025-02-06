@@ -22,9 +22,9 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  bool isLoading = false;         // 전송 로딩 상태
+  bool isLoading = false; // 전송 로딩 상태
   String _catFileName = 'gray_cat'; // 고양이 이미지 파일명 (기본)
-  String _catName = '고양이';       // 고양이 이름 (기본)
+  String _catName = '고양이'; // 고양이 이름 (기본)
 
   @override
   void initState() {
@@ -90,7 +90,7 @@ class _ChatScreenState extends State<ChatScreen> {
           if (delta != 0) {
             final sign = (delta > 0) ? '+' : '';
             final sysMsg =
-                '친밀도가 $sign$delta만큼 ${(delta>0)? '올랐어요:)' : '내려갔어요:('}';
+                '친밀도가 $sign$delta만큼 ${(delta > 0) ? '올랐어요:)' : '내려갔어요:('}';
             // 채팅 목록에 system 메시지 추가
             chatLog.addMessage('system', sysMsg);
           }
@@ -284,14 +284,14 @@ class _ChatScreenState extends State<ChatScreen> {
   /// system 메시지 → 중앙 정렬 안내 (회색 박스)
   Widget _buildSystemMessage(String content) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical:4, horizontal:16),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
       child: Center(
         child: Container(
           decoration: BoxDecoration(
             color: Colors.grey.shade400,
             borderRadius: BorderRadius.circular(12),
           ),
-          padding: const EdgeInsets.symmetric(vertical:8, horizontal:12),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           child: Text(
             content,
             style: const TextStyle(
@@ -396,8 +396,8 @@ class _ChatScreenState extends State<ChatScreen> {
     final List<TextSpan> spans = [];
     int lastMatchEnd = 0;
 
-    const Color normalColor = Colors.white;     // 일반 텍스트 색
-    const Color italicColor = Colors.white70;   // 이탤릭 부분 색
+    const Color normalColor = Colors.white; // 일반 텍스트 색
+    const Color italicColor = Colors.white70; // 이탤릭 부분 색
 
     final matches = regex.allMatches(message);
     for (final match in matches) {

@@ -6,25 +6,26 @@ import '../screens/game_screen.dart';
 final List<Cat> cats = [
   Cat(
     name: 'Player',
-    imagePath: 'assets/images/cat1.png',
-    description: '나의 고양이',
-    color: 'one',
+
+    imagePath: 'assets/cat1.png',
+    description: '빠르고 날렵한 고양이',
+    color: 'one', // 지정
   ),
   Cat(
-    name: '흰냥이',
-    imagePath: 'assets/images/cat2.png',
+    name: '고양이 2',
+    imagePath: 'assets/cat2.png',
     description: '지구력이 뛰어난 고양이',
     color: 'two',
   ),
   Cat(
-    name: '갈냥이',
-    imagePath: 'assets/images/cat3.png',
+    name: '고양이 3',
+    imagePath: 'assets/cat3.png',
     description: '힘이 좋은 고양이',
     color: 'three',
   ),
   Cat(
-    name: '아이보리냥이',
-    imagePath: 'assets/images/cat4.png',
+    name: '고양이 4',
+    imagePath: 'assets/cat4.png',
     description: '똑똑한 고양이',
     color: 'four',
   ),
