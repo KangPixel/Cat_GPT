@@ -71,3 +71,6 @@ flutter:
     - family: OwnglyphPDH
       fonts:
         - asset: assets/fonts/OwnglyphPDH-Regular.ttf
+    - family: DNFBitBitv2
+      fonts:
+        - asset: assets/fonts/DNFBitBitv2.otf
