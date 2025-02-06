@@ -19,11 +19,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.3.5
   playing_cards: 0.3.1+9
-  flutter_native_splash: ^2.4.4
-
-
-
-
+  
   # Local packages
   jump_rope_game:
     path: packages/jump_rope_game
@@ -33,7 +29,7 @@ dependencies:
     path: packages/Flutter_Blackjack
   flutter_suika_game:
     path: packages/flutter_suika_game
-
+    
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -45,29 +41,16 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-
+    - assets/images/gray_cat.png
+    - assets/images/gray_cat_open_mouth.png
     - assets/images/suika_game/
     - assets/images/food.png
     - assets/images/sleep.png
     - assets/images/play.png
     - assets/images/speech_bubble.png
     - assets/images/pixel_cat.png
-    - assets/images/fish.png
-    - assets/images/cat/
+    - assets/images/
     - assets/audio/
     - assets/tiles/
-    - assets/images/space_background.png
-    - assets/images/nightcap.png
-    - assets/images/
-
-  fonts:
-    - family: Pretendard
-      fonts:
-        - asset: assets/fonts/Pretendard-Regular.otf
-        - asset: assets/fonts/Pretendard-Medium.otf
-          weight: 500
-        - asset: assets/fonts/Pretendard-Bold.otf
-          weight: 700
-    - family: OwnglyphPDH
-      fonts:
-        - asset: assets/fonts/OwnglyphPDH-Regular.ttf
+    - assets/
+    
