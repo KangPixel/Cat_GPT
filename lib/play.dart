@@ -419,7 +419,8 @@ class _PlayScreenState extends State<PlayScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            Text('$value', style: const TextStyle(fontSize: 14)),
+            Text('$value',
+                style: const TextStyle(fontSize: 14, fontFamily: 'Pretendard')),
           ],
         );
       },
@@ -437,27 +438,33 @@ class _PlayScreenState extends State<PlayScreen> {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                imagePath,
-                width: 180,
-                height: 180,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(Icons.games, size: 80);
-                },
+        // SizedBox로 감싸 크기를 제한
+        child: SizedBox(
+          width: 150, // 카드 전체 가로
+          height: 150, // 카드 전체 세로
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  imagePath,
+                  width: 150, // 이미지 가로
+                  height: 150, // 이미지 세로
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.games, size: 40);
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         ),
       ),
     );
