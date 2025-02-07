@@ -15,6 +15,7 @@ class GameManualPage extends StatelessWidget {
         title: const Text(
           '게임 설명',
           style: TextStyle(
+            fontFamily: 'Pretendard',
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -115,6 +116,7 @@ class GameManualPage extends StatelessWidget {
               Text(
                 title,
                 style: const TextStyle(
+                  fontFamily: 'Pretendard',
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -125,6 +127,7 @@ class GameManualPage extends StatelessWidget {
           Text(
             content,
             style: const TextStyle(
+              fontFamily: 'Pretendard',
               fontSize: 14,
               height: 1.5,
             ),
