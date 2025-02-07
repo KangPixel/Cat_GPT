@@ -1,4 +1,5 @@
-//packages/ski_master/lib/game/routes/retry_menu.dart
+// FILE: packages/ski_master/lib/game/routes/retry_menu.dart
+
 import 'package:flutter/material.dart';
 
 class RetryMenu extends StatelessWidget {

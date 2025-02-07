@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
-import 'dart:math' show Random;
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -19,24 +18,16 @@ class Player extends PositionComponent
       : _body = SpriteComponent(sprite: sprite, anchor: Anchor.center);
 
   final SpriteComponent _body;
-  final _random = Random();
   final _moveDirection = Vector2(0, 1);
-  final _currentDirection = Vector2(0, 1);
 
   late final _trailParticlePaint = Paint()..color = game.backgroundColor();
   late final _offsetLeft = Vector2(-_body.width * 0.25, 0);
   late final _offsetRight = Vector2(_body.width * 0.25, 0);
 
-  static const _maxSpeed = 200.0; // 최대 속도 약간 감소
-  static const _minTurnSpeed = 30.0; // 회전 시작 속도를 낮춤
-  static const _baseAcceleration = 0.3;
-  static const _baseTurnRate = 2.5; // 기본 회전 속도 증가
-  static const _speedTurnMultiplier = 0.45; // 속도에 따른 회전 제한을 완화
-
+  static const _maxSpeed = 220;
+  static const _acceleration = 0.5;
   var _speed = 0.0;
   var _isOnGround = true;
-  var _angularVelocity = 0.0;
-  var _slipAngle = 0.0;
 
   @override
   Future<void> onLoad() async {
@@ -48,65 +39,35 @@ class Player extends PositionComponent
 
   @override
   void update(double dt) {
-    final input = -ancestor.input.hAxis; // 방향키 반전
+    _moveDirection.x = ancestor.input.hAxis;
+    _moveDirection.y = 1;
 
-    final speedFactor = (_speed - _minTurnSpeed) / (_maxSpeed - _minTurnSpeed);
-    final turnRate = _baseTurnRate * (1 - speedFactor * _speedTurnMultiplier);
+    _moveDirection.normalize();
+    _speed = lerpDouble(_speed, _maxSpeed, _acceleration * dt)!;
 
-    final targetAngularVel = input * turnRate;
-    _angularVelocity =
-        lerpDouble(_angularVelocity, targetAngularVel, 0.15)!; // 회전 반응성 증가
-
-    final rotationAmount = _angularVelocity * dt;
-    _currentDirection.rotate(rotationAmount);
-
-    final targetSlipAngle = input * 0.2 * speedFactor; // 미끄러짐 감소
-    _slipAngle =
-        lerpDouble(_slipAngle, targetSlipAngle, 0.08)!; // 미끄러짐 회복 속도 증가
-
-    final moveVector = _currentDirection.clone()..rotate(_slipAngle);
-
-    final accelerationMultiplier = 1 - _slipAngle.abs() * 0.5;
-    final targetSpeed = _maxSpeed * accelerationMultiplier;
-    _speed = lerpDouble(_speed, targetSpeed, _baseAcceleration * dt)!;
-
-    position.addScaled(moveVector, _speed * dt);
-    angle = moveVector.screenAngle() + pi;
+    angle = _moveDirection.screenAngle() + pi;
+    position.addScaled(_moveDirection, _speed * dt);
 
     if (_isOnGround) {
-      _emitTrailParticles();
-    }
-  }
-
-  void _emitTrailParticles() {
-    final spread = _slipAngle.abs() * 0.5;
-    parent?.add(
-      ParticleSystemComponent(
-        position: position,
-        particle: Particle.generate(
-          count: 3,
-          lifespan: 2.5,
-          generator: (index) {
-            final randomOffset = Vector2(
-              (_random.nextDouble() - 0.5) * spread,
-              (_random.nextDouble() - 0.5) * spread,
-            );
-            final baseOffset = index == 0
-                ? _offsetLeft
-                : index == 1
-                    ? _offsetRight
-                    : Vector2.zero();
-            return TranslatedParticle(
-              child: CircleParticle(
-                radius: 1.2,
-                paint: _trailParticlePaint,
-              ),
-              offset: baseOffset + randomOffset,
-            );
-          },
+      parent?.add(
+        ParticleSystemComponent(
+          position: position,
+          particle: Particle.generate(
+            count: 2,
+            lifespan: 2,
+            generator: (index) {
+              return TranslatedParticle(
+                child: CircleParticle(
+                  radius: 0.8,
+                  paint: _trailParticlePaint,
+                ),
+                offset: index == 0 ? _offsetLeft : _offsetRight,
+              );
+            },
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   void resetTo(Vector2 resetPosition) {
@@ -114,13 +75,7 @@ class Player extends PositionComponent
       FlameAudio.play(SkiMasterGame.hurtSfx);
     }
     position.setFrom(resetPosition);
-    _speed *= 0.3;
-    // 방향 완전 초기화
-    _currentDirection.setFrom(Vector2(0, 1));
-    _moveDirection.setFrom(Vector2(0, 1));
-    _angularVelocity = 0.0;
-    _slipAngle = 0.0;
-    angle = pi; // 정면을 바라보도록 회전 초기화
+    _speed *= 0.5;
   }
 
   double jump() {

@@ -1,8 +1,13 @@
+// FILE: play.dart
+// (경로 예시: lib/mini_game_manager.dart or lib/play.dart, 상황에 맞게 배치)
+
+// 기존 import 문들 + 필요한 import
 import 'package:flutter/material.dart';
 import 'package:flame/game.dart';
 import 'package:get_it/get_it.dart';
 
-// 기존 상단 코드 내 import들
+// 아래는 예시 import (이미 사용하셨던 것들)
+// 실제 경로/패키지명 맞춰 사용하세요
 import 'status.dart';
 import 'day10_stats.dart';
 import 'mini_game_manager.dart';
@@ -69,13 +74,13 @@ class _PlayScreenState extends State<PlayScreen> {
                       '놀기 위해 새로운 에너지가 필요해요!',
                       style: TextStyle(
                         fontSize: 30,
-                        fontFamily: 'OwnglyphPDH',
+                        fontFamily: 'OwnglyphPDH', // 예: 사용 중인 폰트
                         color: Colors.white,
                         shadows: [
                           Shadow(
                             offset: Offset(2.0, 2.0),
                             blurRadius: 3.0,
-                            color: Colors.black.withOpacity(0.5),
+                            color: Colors.black54,
                           ),
                         ],
                       ),
@@ -92,10 +97,11 @@ class _PlayScreenState extends State<PlayScreen> {
         // 에너지가 충분한 경우의 메인 화면
         // --------------------------------
         return Scaffold(
-          backgroundColor: Colors.cyan[50], // 하단 코드의 전체 배경색 반영
+          backgroundColor: Colors.cyan[50], // 전체 배경색
           appBar: AppBar(
             title: const Text('Play'),
             actions: [
+              // 포인트 표시
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -204,7 +210,8 @@ class _PlayScreenState extends State<PlayScreen> {
 
                         // JumpRopeGame 초기화
                         game = jump_rope.JumpRopeGame(
-                            onRestartAttempt: handleRestartAttempt);
+                          onRestartAttempt: handleRestartAttempt,
+                        );
 
                         Navigator.push<MiniGameResult>(
                           context,
@@ -223,11 +230,32 @@ class _PlayScreenState extends State<PlayScreen> {
                       },
                     ),
 
-                    // 2) Ski Master
+                    // 2) Ski
                     _buildGameCard(
                       'Ski',
                       'assets/images/ski.png',
                       () {
+                        // 시작 전 에너지 체크
+                        if (catStatus.energy.value < 50) {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('에너지 부족'),
+                              content:
+                                  const Text('스키를 타기 위해서는 50 이상의 에너지가 필요합니다.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text('확인'),
+                                ),
+                              ],
+                            ),
+                          );
+                          return;
+                        }
+
                         Navigator.push<Map<String, dynamic>>(
                           context,
                           MaterialPageRoute(
@@ -243,16 +271,32 @@ class _PlayScreenState extends State<PlayScreen> {
                             final isGameOver = resultMap['gameOver'] as bool;
                             final levelCompleted =
                                 resultMap['levelCompleted'] as bool;
+                            final totalFatigue =
+                                resultMap['totalFatigue'] as int;
+                            final fatigueSummary =
+                                resultMap['fatigueSummary'] as String;
+                            final returnToPlay =
+                                resultMap['returnToPlay'] as bool;
 
+                            // 게임에서 돌아올 때(레벨완 or 게임오버) 결과 처리
                             if (isGameOver || levelCompleted) {
                               final result = MiniGameResult(
                                 gameName: 'Ski Master',
                                 totalScore: score,
-                                fatigueIncrease: 5,
-                                pointsEarned: score ~/ 100,
+                                fatigueIncrease: totalFatigue,
+                                pointsEarned: score ~/ 1000, // 1000점당 1포인트
+                                fatigueMessage: fatigueSummary,
                               );
-                              miniGameManager.processGameResult(
-                                  context, result);
+
+                              miniGameManager
+                                  .processGameResult(context, result)
+                                  .then((_) {
+                                // returnToPlay가 true이면, 다시 PlayScreen으로
+                                // (이미 pop되었을 테니, 겹쳐 있으면 pop 한번 더)
+                                if (returnToPlay && Navigator.canPop(context)) {
+                                  Navigator.pop(context);
+                                }
+                              });
                             }
                           }
                         });
@@ -371,9 +415,6 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
-  // -------------------------------------------------------------
-  // 하단 코드에서 가져온 '스탯 바(Progress Bar)' UI 컴포넌트들
-  // -------------------------------------------------------------
   Widget _buildStatsBar() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -399,7 +440,7 @@ class _PlayScreenState extends State<PlayScreen> {
     return ValueListenableBuilder<int>(
       valueListenable: stat,
       builder: (context, value, _) {
-        final ratio = (value / 100).clamp(0.0, 1.0); // 0~1 범위로
+        final ratio = (value / 100).clamp(0.0, 1.0);
         return Row(
           children: [
             Text(
@@ -427,21 +468,17 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
-  // -------------------------------------------------------------
-  // 하단 코드의 GameCard 스타일 + 상단 코드의 로직 연결
-  // -------------------------------------------------------------
   Widget _buildGameCard(String title, String imagePath, VoidCallback onTap) {
     return Card(
-      color: Colors.transparent, // 투명 카드
-      elevation: 0, // 그림자 제거
+      color: Colors.transparent,
+      elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        // SizedBox로 감싸 크기를 제한
         child: SizedBox(
-          width: 150, // 카드 전체 가로
-          height: 150, // 카드 전체 세로
+          width: 150,
+          height: 150,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -449,8 +486,8 @@ class _PlayScreenState extends State<PlayScreen> {
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
                   imagePath,
-                  width: 150, // 이미지 가로
-                  height: 150, // 이미지 세로
+                  width: 150,
+                  height: 150,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return const Icon(Icons.games, size: 40);
@@ -470,9 +507,6 @@ class _PlayScreenState extends State<PlayScreen> {
     );
   }
 
-  // -------------------------------------------------------
-  // 상단 코드의 고급 _buildGameScreen 로직(WillPopScope 등)
-  // -------------------------------------------------------
   Widget _buildGameScreen(BuildContext context, FlameGame game, String title) {
     // 1) MainGame(GameState) 등록 로직
     if (game is MainGame) {
@@ -492,7 +526,7 @@ class _PlayScreenState extends State<PlayScreen> {
       );
     }
 
-    // 2) Suika Game이면 뒤로가기 시 팝업 + 결과 반환(WillPopScope)
+    // 2) Suika Game이면 뒤로가기 시 팝업
     if (title == 'Suika Game') {
       return WillPopScope(
         onWillPop: () async {
@@ -549,7 +583,6 @@ class _PlayScreenState extends State<PlayScreen> {
             child: GameWidget(
               game: game,
               autofocus: true,
-              focusNode: _gameFocusNode,
               loadingBuilder: (context) => const Center(
                 child: CircularProgressIndicator(),
               ),
@@ -574,16 +607,6 @@ class _PlayScreenState extends State<PlayScreen> {
                 final gameplay = game.findByKeyName<Gameplay>(Gameplay.id);
                 if (gameplay != null) {
                   gameplay.handleSettle(isGameOver: false);
-
-                  Future.delayed(const Duration(milliseconds: 500), () {
-                    final resultMap = {
-                      'score': gameplay.score,
-                      'gameOver': false,
-                      'levelCompleted': false,
-                      'additionalFatigue': 5,
-                    };
-                    Navigator.of(context).pop(resultMap);
-                  });
                 }
               }
             } else if (title == 'Jump Rope') {
@@ -605,7 +628,6 @@ class _PlayScreenState extends State<PlayScreen> {
         child: GameWidget(
           game: game,
           autofocus: true,
-          focusNode: _gameFocusNode,
           loadingBuilder: (context) => const Center(
             child: CircularProgressIndicator(),
           ),

@@ -28,22 +28,22 @@ class Hud extends PositionComponent with ParentIsA<Viewport>, HasGameReference {
           scale: Vector2.all(SkiMasterGame.isMobile ? 0.6 : 1.0),
         );
 
-  final _life = TextComponent(
+  late final TextComponent _life = TextComponent(
     text: 'x3',
     anchor: Anchor.centerLeft,
     textRenderer: TextPaint(
-      style: const TextStyle(
+      style: TextStyle(
         color: Colors.black,
         fontSize: SkiMasterGame.isMobile ? 8 : 10,
       ),
     ),
   );
 
-  final _score = TextComponent(
-    text: '0', // 초기값
+  late final TextComponent _score = TextComponent(
+    text: '0',
     anchor: Anchor.centerLeft,
     textRenderer: TextPaint(
-      style: const TextStyle(
+      style: TextStyle(
         color: Colors.black,
         fontSize: SkiMasterGame.isMobile ? 8 : 10,
       ),
@@ -131,7 +131,7 @@ class Hud extends PositionComponent with ParentIsA<Viewport>, HasGameReference {
   }
 
   void updateSnowmanCount(int count) {
-    _score.text = 'x$count';
+    _score.text = count.toString();
 
     _snowman.add(
       RotateEffect.by(

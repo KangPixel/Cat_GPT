@@ -28,7 +28,7 @@ class LevelSelection extends StatelessWidget {
             const SizedBox(height: 15),
             Flexible(
               child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: SkiMasterGame.isMobile ? 2 : 3,
                   mainAxisExtent: 50,
                   crossAxisSpacing: 5,

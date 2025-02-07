@@ -1,4 +1,5 @@
-//packages/ski_master/lib/game/routes/level_complete.dart
+// FILE: packages/ski_master/lib/game/routes/level_complete.dart
+
 import 'package:flutter/material.dart';
 
 class LevelComplete extends StatelessWidget {
