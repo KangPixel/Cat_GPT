@@ -131,13 +131,13 @@ class _OnboardingSlidesState extends State<OnboardingSlides> {
         const SizedBox(height: 16),
         Text(
           data.title,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontFamily: 'Pretendard',fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         Text(
           data.description,
           textAlign: textAlignment, // 여기서 조건부로 왼쪽 혹은 기본 정렬
-          style: const TextStyle(fontSize: 16, color: Colors.black87),
+          style: const TextStyle(fontFamily: 'Pretendard',fontSize: 16, color: Colors.black87),
         ),
         const SizedBox(height: 40),
       ],

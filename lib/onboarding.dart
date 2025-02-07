@@ -44,11 +44,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             TextField(
               controller: _catNameController,
               cursorColor: Colors.black,
-              style: const TextStyle(color: Colors.black),
+              style: const TextStyle(fontFamily: 'Pretendard', color: Colors.black),
               decoration: InputDecoration(
                 labelText: '고양이 이름',
                 hintText: '고양이의 이름을 지어주세요🍀 (1~7자)',
-                labelStyle: const TextStyle(color: Colors.black),
+                labelStyle: const TextStyle(fontFamily: 'Pretendard', color: Colors.black),
                 enabledBorder: const UnderlineInputBorder(
                   borderSide: BorderSide(color: Colors.black),
                 ),
@@ -63,7 +63,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             // (2) 안내 문구
             const Text(
               '고양이 종을 선택하세요',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(fontFamily: 'Pretendard', fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
 
@@ -115,6 +115,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Text(
                           name,
                           style: TextStyle(
+                            fontFamily: 'Pretendard',
                             fontSize: 16,
                             color: isSelected ? Colors.black : Colors.black87,
                             fontWeight: FontWeight.bold,
@@ -143,7 +144,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPressed: _onStartPressed,
                 child: const Text(
                   '고양이 탄생 시키기🐱',
-                  style: TextStyle(fontSize: 18, color: Colors.black),
+                  style: TextStyle(fontFamily: 'Pretendard', fontSize: 18, color: Colors.black),
                 ),
               ),
             ),
