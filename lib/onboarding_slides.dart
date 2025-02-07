@@ -18,44 +18,44 @@ class _OnboardingSlidesState extends State<OnboardingSlides> {
   // 5장 구성
   final List<_SlideData> _slides = [
     _SlideData(
-      image: 'assets/images/onboarding.png',
+      image: 'assets/images/onboarding1.png',
       title: '환영합니다!🍀',
       description: '당신만의 특별한 고양이 키우기 게임!\n귀여운 고양이와 함께 즐거운 시간을 보내보세요.',
     ),
     _SlideData(
-      image: 'assets/images/onboarding.png',
+      image: 'assets/images/onboarding2.png',
       title: '기본 조작',
       description: 
-                '① 고양이 버튼: 고양이의 상태를 확인할 수 있습니다.\n'
+                '① 고양이 버튼: 고양이의 에너지 상태를 확인할 수 있습니다.\n'
                 '② 밥 주기: 고양이의 에너지를 회복시킵니다.\n'
                 '③ 잠자기: 고양이의 피로도를 낮추고 에너지를 회복합니다.\n'
                 '④ 놀아주기: 고양이와 미니게임을 즐길 수 있습니다.\n'
                 '⑤ 대화하기: 고양이와 대화를 나눌 수 있습니다.',
     ),
     _SlideData(
-      image: 'assets/images/onboarding.png',
+      image: 'assets/images/onboarding3.png',
       title: '상태 관리',
       description:                 
                 '• 에너지: 활동에 필요한 기본 자원입니다.\n'
                 '• 피로도: 높아지면 에너지 회복이 불가능합니다.\n'
-                '• 친밀도: 고양이와 상호작용으로 높일 수 있습니다.',
+                '• 친밀도: 고양이 밥주기 & 대화로 높일 수 있습니다.',
     ),
     _SlideData(
-      image: 'assets/images/onboarding.png',
+      image: 'assets/images/onboarding4.png',
       title: '미니 게임',
       description:
                 '• 에너지가 50% 이상일 때 플레이 가능\n'
-                '• 미니게임 성공 시 포인트 획득! 원하는 스탯에 분배해 주세요~\n'
+                '• 미니게임 성공 시 포인트 획득! 원하는 스탯에 분배해 주세요.\n'
                 '• 다양한 게임을 즐길 수 있습니다!',
     ),
     _SlideData(
-      image: 'assets/images/onboarding.png',
+      image: 'assets/images/onboarding5.png',
       title: '팁',
       description: 
-                '• 하루에 두번까지 고양이를 만져 친밀도를 얻을 수 있습니다.\n'
-                '• 정기적으로 잠을 재워주세요. 잠을 자면 피로도가 사라집니다.\n'
-                '• 대신 친밀도도 다시 쌓아야 합니다.\n'
-                '• 10일이 지난다면 특별한 경기를 한답니다.',
+                '• 하루에 세번까지 밥주기를 통해 친밀도를 높일 수 있습니다.\n'
+                '• 잠을 자면 피로도가 낮아집니다.\n'
+                '• 취침 후에는 친밀도가 리셋됩니다.\n'
+                '• 10일이 지나 D-Day가 되면 특별한 경기를 한답니다!',
     ),
   ];
 
