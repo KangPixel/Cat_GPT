@@ -546,7 +546,7 @@ class GameScreen extends StatelessWidget {
                                         prefs.getString('catName') ?? '이름 없음';
 
                                     return Text(
-                                      '$catName | 에너지 $value%',
+                                      '$catName | 에너지 $value% ▶',
                                       style: const TextStyle(
                                         fontFamily: 'Pretendard',
                                         fontSize: 16,

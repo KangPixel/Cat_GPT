@@ -3,12 +3,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'onboarding_slides.dart';
 import 'onboarding.dart';
-import 'flameui.dart';
 import 'chat.dart';
-import 'status.dart';
-import 'day.dart';
-import 'touch.dart';
-import 'eatsleep.dart';
 import 'day10_game.dart';
 import 'game_screen.dart';
 import 'play.dart';
@@ -57,3 +52,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
