@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:just_audio/just_audio.dart';
 
-class RankingScreen extends StatelessWidget {
+class RankingScreen extends StatefulWidget {
   final List<Map<String, dynamic>> raceResults;
   final bool isPlayerWinner;
 
@@ -12,6 +13,34 @@ class RankingScreen extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _RankingScreenState createState() => _RankingScreenState();
+}
+
+class _RankingScreenState extends State<RankingScreen> {
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+    _playSound(widget.isPlayerWinner ? 'assets/fireworks.wav' : 'assets/clap.ogg');
+  }
+
+  Future<void> _playSound(String soundPath) async {
+    try {
+      await _audioPlayer.setAsset(soundPath); // 🔹 just_audio 방식으로 파일 설정
+      await _audioPlayer.play(); // 🔊 재생
+    } catch (e) {
+      debugPrint("❌ Error playing sound: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('🏁 경주 결과 🏁')),
@@ -20,14 +49,14 @@ class RankingScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if (isPlayerWinner) // ✅ Player가 1위면 불꽃 애니메이션
+            if (widget.isPlayerWinner)
               Column(
                 children: [
                   Lottie.asset(
-                    'assets/fireworks.json', // 🎆 불꽃 애니메이션
+                    'assets/fireworks.json',
                     width: 200,
                     height: 200,
-                    repeat: true, // 🔥 무한 반복
+                    repeat: true,
                   ),
                   const SizedBox(height: 10),
                   const Text(
@@ -37,23 +66,20 @@ class RankingScreen extends StatelessWidget {
                   ),
                 ],
               )
-            else // ❌ 1등 못했을 때 위로 애니메이션 + 메시지
+            else
               Column(
                 children: [
                   Lottie.asset(
-                    'assets/cheer.json', // 😢 위로하는 애니메이션
+                    'assets/cheer.json',
                     width: 200,
                     height: 200,
-                    repeat: true, // 🔄 무한 반복
+                    repeat: true,
                   ),
                   const SizedBox(height: 10),
                   const Text(
                     '아쉽지만 다음에 한번 더! 🐱',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.blue),
                   ),
                 ],
               ),
@@ -64,7 +90,7 @@ class RankingScreen extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            ...raceResults.asMap().entries.map((entry) {
+            ...widget.raceResults.asMap().entries.map((entry) {
               int index = entry.key;
               Map<String, dynamic> result = entry.value;
               return Text(
