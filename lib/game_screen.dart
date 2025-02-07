@@ -411,7 +411,7 @@ class GameScreen extends StatelessWidget {
       // 상단 AppBar
       appBar: AppBar(
         title: const Text(
-          '게임명 / 로고',
+          '빌려온 고양이',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontFamily: 'Pretendard', // 폰트 적용

@@ -477,8 +477,8 @@ class _PlayScreenState extends State<PlayScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
-          width: 150,
-          height: 150,
+          width: 160,
+          height: 160,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -486,8 +486,8 @@ class _PlayScreenState extends State<PlayScreen> {
                 borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
                   imagePath,
-                  width: 150,
-                  height: 150,
+                  width: 130,
+                  height: 130,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return const Icon(Icons.games, size: 40);
