@@ -1,0 +1,23 @@
+name: flutter_blackjack_pkg
+description: A Flutter package for Blackjack.
+version: 0.0.1
+homepage: https://github.com/marcello-a/Flutter_Blackjack
+
+environment:
+  sdk: ">=2.19.0 <3.0.0"
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  playing_cards: 0.3.1+9
+  flame_audio: ^2.1.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  assets:
+    - assets/card_imagery/

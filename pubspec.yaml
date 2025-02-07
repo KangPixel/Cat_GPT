@@ -1,0 +1,88 @@
+name: chat_cat_game
+description: "A Flutter project integrating a game and a chatbot."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.4 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flame: ^1.22.0
+  flame_audio: ^2.10.2
+  just_audio: ^0.9.46
+  flame_forge2d: ^0.16.0+2
+  freezed_annotation: ^2.4.1
+  get_it: ^7.6.4
+  uuid: ^4.2.1
+  http: ^1.2.2
+  cupertino_icons: ^1.0.8
+  shared_preferences: ^2.3.5
+  playing_cards: 0.3.1+9
+
+  lottie: ^3.3.0
+
+  flutter_native_splash: ^2.4.4
+  
+
+
+
+
+  # Local packages
+  jump_rope_game:
+    path: packages/jump_rope_game
+  ski_master:
+    path: packages/ski_master
+  flutter_blackjack_pkg:
+    path: packages/Flutter_Blackjack
+  flutter_suika_game:
+    path: packages/flutter_suika_game
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.7  # 추가
+  freezed: ^2.4.6  # 추가
+  pedantic_mono: ^1.25.0  # 추가
+
+flutter:
+  uses-material-design: true
+  assets:
+
+    - assets/images/suika_game/
+    - assets/images/food.png
+    - assets/images/sleep.png
+    - assets/images/play.png
+    - assets/images/speech_bubble.png
+    - assets/images/pixel_cat.png
+    - assets/images/
+    - assets/audio/
+    - assets/tiles/
+    - assets/images/space_background.png
+    - assets/images/nightcap.png
+    - assets/images/
+    - assets/images/cat/
+    - assets/audio/catsong.mp3
+    - assets/
+    - assets/clap.ogg
+    - assets/fireworks.wav
+
+
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/Pretendard-Regular.otf
+        - asset: assets/fonts/Pretendard-Medium.otf
+          weight: 500
+        - asset: assets/fonts/Pretendard-Bold.otf
+          weight: 700
+    - family: OwnglyphPDH
+      fonts:
+        - asset: assets/fonts/OwnglyphPDH-Regular.ttf
+    - family: DNFBitBitv2
+      fonts:
+        - asset: assets/fonts/DNFBitBitv2.otf
+
